@@ -220,12 +220,12 @@
                         <Setter.Value>
                             <ControlTemplate TargetType="TabItem">
                                 <Border x:Name="TabPill"
-                                        CornerRadius="10"
-                                        Margin="0,0,10,6"
-                                        Padding="18,9"
+                                        CornerRadius="12"
+                                        Margin="0,0,12,8"
+                                        Padding="24,12"
                                         Background="{DynamicResource ControlFillColorDefaultBrush}"
                                         BorderThickness="1"
-                                        BorderBrush="Transparent"
+                                        BorderBrush="#2EFFFFFF"
                                         RenderTransformOrigin="0.5,0.5">
                                     <Border.RenderTransform>
                                         <ScaleTransform x:Name="PillScale" ScaleX="1" ScaleY="1" />
@@ -281,7 +281,7 @@
                                         <Setter TargetName="TabPill" Property="TextElement.Foreground" Value="White" />
                                         <Setter TargetName="TabPill" Property="Effect">
                                             <Setter.Value>
-                                                <DropShadowEffect Color="#6C63FF" BlurRadius="20" ShadowDepth="0" Opacity="0.55" />
+                                                <DropShadowEffect Color="#6C63FF" BlurRadius="26" ShadowDepth="0" Opacity="0.7" />
                                             </Setter.Value>
                                         </Setter>
                                     </Trigger>
@@ -296,8 +296,13 @@
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Apps24" Margin="0,0,6,0" />
-                        <TextBlock Text="Applications" />
+                        <ui:SymbolIcon Symbol="Apps24" FontSize="19" Margin="0,0,9,0" VerticalAlignment="Center" />
+                        <TextBlock Text="Applications" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Border CornerRadius="9" Background="#F7A826" Padding="7,1" Margin="9,0,0,0"
+                                VerticalAlignment="Center"
+                                Visibility="{Binding UpdatesCount, Converter={StaticResource CountToVisibility}}">
+                            <TextBlock Text="{Binding UpdatesCount}" FontSize="11" FontWeight="Bold" Foreground="#1A1029" />
+                        </Border>
                     </StackPanel>
                 </TabItem.Header>
                 <Grid Margin="8,10,8,0">
@@ -500,8 +505,13 @@
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="DeveloperBoard24" Margin="0,0,6,0" />
-                        <TextBlock Text="Drivers" />
+                        <ui:SymbolIcon Symbol="DeveloperBoard24" FontSize="19" Margin="0,0,9,0" VerticalAlignment="Center" />
+                        <TextBlock Text="Drivers" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Border CornerRadius="9" Background="#F7A826" Padding="7,1" Margin="9,0,0,0"
+                                VerticalAlignment="Center"
+                                Visibility="{Binding Drivers.UpdatesCount, Converter={StaticResource CountToVisibility}}">
+                            <TextBlock Text="{Binding Drivers.UpdatesCount}" FontSize="11" FontWeight="Bold" Foreground="#1A1029" />
+                        </Border>
                     </StackPanel>
                 </TabItem.Header>
                 <Grid Margin="8,10,8,0">
