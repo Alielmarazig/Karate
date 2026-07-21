@@ -1,75 +1,88 @@
-# 🥋 Karate — Software Update Monitor
+<div align="center">
 
-A modern Windows app inspired by SUMo (KC Softwares, discontinued 2023). Scans your
-installed software and tells you which apps have updates available.
+<img src="Assets/karate.png" width="96" alt="Karate logo" />
 
-## How it works
+# 🥋 Karate
 
-**Applications tab**
-1. **Scan** — enumerates installed software from the Windows registry uninstall keys
-   (HKLM 64-bit, HKLM 32-bit/WOW6432Node, and HKCU) plus Microsoft Store / MSIX
-   packages, filtering out system components, hotfixes, and child entries.
-2. **Check for Updates** — runs `winget upgrade` in the background, parses the results,
-   and matches them against the scanned apps. Apps with updates sort to the top and
-   counter cards show updates / up-to-date / total at a glance.
+**The software & driver update monitor for Windows — that actually updates things.**
 
-**Drivers tab**
-1. **Scan** — enumerates installed device drivers via WMI (`Win32_PnPSignedDriver`).
-2. **Check for Updates** — queries the Windows Update Agent COM API for available
-   driver updates (`Type='Driver'`) and matches them to devices by hardware ID.
-   Installation is left to Windows Update itself (one click away).
+*Apps & drivers in one dojo.*
 
-## Tech stack
+[![Latest release](https://img.shields.io/github/v/release/Alielmarazig/Karate?color=6C63FF&label=release)](https://github.com/Alielmarazig/Karate/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Alielmarazig/Karate/total?color=2F80ED&label=downloads)](https://github.com/Alielmarazig/Karate/releases)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6)](#-install)
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com)
+[![License](https://img.shields.io/badge/license-MIT-3FB950)](installer/License.rtf)
 
-- **C# / .NET 9** (WPF, `net9.0-windows`, `RollForward=LatestMajor` so it also runs on the .NET 10 runtime)
-- **[WPF-UI](https://github.com/lepoco/wpfui) 4.x** — Fluent / Windows 11 design: Mica backdrop,
-  dark & light theme following the system setting
-- **CommunityToolkit.Mvvm** — MVVM source generators (`[ObservableProperty]`, `[RelayCommand]`)
+<img src="docs/screenshot.png" width="850" alt="Karate main window — liquid glass UI with app inventory" />
 
-## Project layout
+</div>
+
+---
+
+Remember **SUMo**? The beloved update monitor died with KC Softwares in 2023. Karate is its spiritual successor — rebuilt from scratch for modern Windows, with the two things SUMo never had: **it installs the updates it finds**, and **every source is official** (Microsoft or the hardware vendor — no proprietary databases, no scare tactics, no "47 outdated drivers!" upsells).
+
+## ✨ What it does
+
+### 📦 Applications
+- **Scans everything** — classic installers from the registry (64-bit, 32-bit, per-user) *and* Microsoft Store / MSIX apps that other tools miss (Slack, WhatsApp, Terminal…)
+- **Detects updates via winget** — Microsoft's own package repository, 10,000+ apps
+- **One-click updating** — per-app **Update** button or **Update All**, with live per-row status (Updating… → Updated ✓) and progress counters
+- Updates sort to the top; counter cards show updates / up-to-date / total at a glance
+
+### 🔧 Drivers
+Three official channels, checked in order:
+| Channel | What it finds | Update action |
+|---|---|---|
+| **Windows Update** | Drivers targeted at your machine | One-click install (single UAC prompt) |
+| **Microsoft Update Catalog** | Newer WHQL drivers WU hasn't pushed yet, matched by hardware ID | Opens the signed package download |
+| **NVIDIA direct** | Game Ready drivers weeks before Microsoft carries them | Opens NVIDIA's official download page |
+
+Plus **driver Backup & Restore** powered by Windows' own `pnputil` — snapshot every third-party driver before you touch anything, restore after a clean reinstall.
+
+### 🔄 Keeps itself fresh
+Karate checks this repo's releases on every launch. When a new version ships, a red **⬆ update pill** appears in the banner — one click downloads it (progress ring included) and the app restarts itself on the new version.
+
+### 💎 Liquid-glass UI
+Acrylic window, drifting color orbs, gradient wordmark, animated pill tabs, glowing counter badges, monospace version numbers. Dark, warm, and alive.
+
+## 📥 Install
+
+Grab either from the [**latest release**](https://github.com/Alielmarazig/Karate/releases/latest):
+
+- **`Karate-x.y.z-x64.msi`** — installer: Start Menu + Desktop shortcuts, clean uninstall, automatic upgrades
+- **`Karate-x.y.z-x64-portable.exe`** — single portable file, run from anywhere
+
+Both are 64-bit and fully self-contained — **no .NET installation required**. Windows 10 (1809+) or Windows 11.
+
+> **SmartScreen note:** binaries are unsigned, so Windows may warn on first run — click *More info → Run anyway*.
+
+## 🛠️ Build from source
+
+```powershell
+git clone https://github.com/Alielmarazig/Karate.git
+cd Karate
+dotnet run                  # dev build
+.\build-installer.ps1       # release MSI (needs WiX 5: dotnet tool install -g wix --version 5.0.2)
+```
+
+**Stack:** C# / .NET 9 · WPF · [WPF-UI](https://github.com/lepoco/wpfui) (Fluent/Mica design) · CommunityToolkit.Mvvm · WiX 5
 
 | Path | Purpose |
 |---|---|
-| `Models/UpdatableItem.cs` | Shared base: update status, sort rank, status colors |
-| `Models/InstalledApp.cs`, `Models/DriverInfo.cs` | App / driver models |
-| `Services/RegistryScanner.cs` | Registry-based installed-software enumeration |
-| `Services/StoreAppScanner.cs` | Microsoft Store / MSIX package enumeration |
-| `Services/WingetService.cs` | Runs and parses `winget upgrade` |
-| `Services/DriverScanner.cs` | WMI driver enumeration (`Win32_PnPSignedDriver`) |
-| `Services/DriverUpdateService.cs` | Windows Update Agent COM search for driver updates |
-| `ViewModels/` | Per-tab commands, counters, search & filtering |
-| `MainWindow.xaml` | Fluent UI: tabs, toolbars, counter cards, data grids |
+| `Services/RegistryScanner.cs` / `StoreAppScanner.cs` | Installed-software inventory |
+| `Services/WingetService.cs` | Update detection + one-click upgrades |
+| `Services/DriverScanner.cs` / `DriverUpdateService.cs` | WMI inventory, Windows Update search & install |
+| `Services/CatalogService.cs` / `NvidiaService.cs` | Update Catalog & NVIDIA channels |
+| `Services/DriverBackupService.cs` | pnputil backup / restore |
+| `Services/SelfUpdateService.cs` | GitHub-powered self-updater |
 
-## Build & run
+## 🤝 Credits
 
-```powershell
-dotnet build
-dotnet run
-```
+Developed by **Alucard GGhz**.
+Inspired by SUMo (KC Softwares, 2004–2023 — rest in peace).
+UI built on the excellent [WPF-UI](https://github.com/lepoco/wpfui) by lepo.co.
 
-Requires Windows 10/11 with winget (App Installer) for update checking; scanning works without it.
+## 📄 License
 
-## Installer (MSI)
-
-The MSI is built with the [WiX Toolset](https://wixtoolset.org) v5 (free, MS-RL licensed — v7 requires
-accepting the OSMF EULA). The app is published self-contained, so end users do **not** need .NET installed.
-
-```powershell
-.\build-installer.ps1    # output: installer\Karate-<version>-x64.msi
-```
-
-The installer ([installer/Karate.wxs](installer/Karate.wxs)) is per-machine (x64, Program Files),
-adds Start Menu + Desktop shortcuts, shows a license/install-dir wizard (WixUI_InstallDir), and
-supports clean major upgrades — keep the `UpgradeCode` GUID unchanged forever, bump `Version` on
-each release.
-
-> **Note for internet distribution:** the MSI is unsigned, so users will see a Windows SmartScreen
-> warning. To remove it you need an Authenticode code-signing certificate (OV/EV) and `signtool`.
-
-## Roadmap ideas
-
-- MSIX / Microsoft Store app enumeration (`Get-AppxPackage`)
-- Portable-app detection via PE version info of EXEs in chosen folders
-- One-click update (`winget upgrade --id <id>`)
-- App icons in the list (extract from `DisplayIcon`)
-- Scheduled background checks + toast notifications
+MIT — do whatever, just keep the notice.

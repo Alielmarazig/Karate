@@ -18,6 +18,13 @@ public partial class MainWindow : FluentWindow
         ApplicationAccentColorManager.Apply(System.Windows.Media.Color.FromRgb(0x6C, 0x63, 0xFF));
         // Dark-locked: the painted glass background is designed for dark chrome.
         Loaded += async (_, _) => await CheckForSelfUpdateAsync(explicitCheck: false);
+        // Demo/diagnostic: scan immediately so the grid is populated on open.
+        if (Environment.GetCommandLineArgs().Contains("--autoscan"))
+            Loaded += async (_, _) =>
+            {
+                if (DataContext is MainViewModel vm)
+                    await vm.ScanCommand.ExecuteAsync(null);
+            };
     }
 
     private ReleaseInfo? _pendingRelease;
