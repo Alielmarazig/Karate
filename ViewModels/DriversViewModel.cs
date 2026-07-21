@@ -109,7 +109,7 @@ public partial class DriversViewModel : ObservableObject
                 var match = FindMatch(update);
                 if (match is not null)
                 {
-                    match.AvailableVersion = update.Title;
+                    match.AvailableVersion = CompactLabel(update.Title, "Windows Update");
                     match.Status = AppStatus.UpdateAvailable;
                 }
                 else
@@ -122,7 +122,7 @@ public partial class DriversViewModel : ObservableObject
                         Manufacturer = update.Manufacturer,
                         HardwareId = update.HardwareId,
                         Source = "Windows Update",
-                        AvailableVersion = update.Title,
+                        AvailableVersion = CompactLabel(update.Title, "Windows Update"),
                         Status = AppStatus.UpdateAvailable,
                     });
                 }
@@ -173,7 +173,7 @@ public partial class DriversViewModel : ObservableObject
             {
                 if (Version.TryParse(driver.Version, out var installed) && latest.Version > installed)
                 {
-                    driver.AvailableVersion = $"{latest.Version} — Update Catalog, {latest.Date}";
+                    driver.AvailableVersion = $"{latest.Version} (Catalog)";
                     driver.Status = AppStatus.UpdateAvailable;
                 }
             }
@@ -185,6 +185,13 @@ public partial class DriversViewModel : ObservableObject
     [RelayCommand]
     private void OpenCatalog(DriverInfo driver) =>
         Process.Start(new ProcessStartInfo(CatalogService.SearchUrl(driver.HardwareId)) { UseShellExecute = true });
+
+    /// <summary>"Intel Corporation - Net - 23.100.0.5" → "23.100.0.5 (Windows Update)".</summary>
+    private static string CompactLabel(string title, string channel)
+    {
+        var m = System.Text.RegularExpressions.Regex.Match(title, @"\d+\.\d+(\.\d+){1,3}");
+        return m.Success ? $"{m.Value} ({channel})" : title;
+    }
 
     private DriverInfo? FindMatch(DriverUpdate update)
     {

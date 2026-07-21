@@ -162,8 +162,8 @@
                             </ui:DataGrid.RowStyle>
                             <ui:DataGrid.Columns>
                                 <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" />
-                                <DataGridTextColumn Header="Installed" Binding="{Binding Version}" Width="140" />
-                                <DataGridTextColumn Header="Available" Binding="{Binding AvailableVersion}" Width="140" />
+                                <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="130" />
+                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="130" />
                                 <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="200" />
                                 <DataGridTextColumn Header="Source" Binding="{Binding RegistrySource}" Width="140" />
                                 <DataGridTemplateColumn Header="Status" Width="170">
@@ -323,10 +323,11 @@
                             </ui:DataGrid.RowStyle>
                             <ui:DataGrid.Columns>
                                 <DataGridTextColumn Header="Device" Binding="{Binding Name}" Width="*" />
-                                <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="110" />
-                                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="150" />
-                                <DataGridTextColumn Header="Date" Binding="{Binding DriverDate}" Width="100" />
-                                <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="170" />
+                                <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="100" />
+                                <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="130" />
+                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="170" />
+                                <DataGridTextColumn Header="Date" Binding="{Binding DriverDate}" Width="95" />
+                                <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="150" />
                                 <DataGridTemplateColumn Header="Status" Width="170">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
