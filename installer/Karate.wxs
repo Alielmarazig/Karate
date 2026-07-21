@@ -32,6 +32,9 @@
         <File Source="$(var.PublishDir)\D3DCompiler_47_cor3.dll" />
       </Component>
       <Component>
+        <File Source="$(var.PublishDir)\e_sqlite3.dll" />
+      </Component>
+      <Component>
         <File Source="$(var.PublishDir)\PenImc_cor3.dll" />
       </Component>
       <Component>

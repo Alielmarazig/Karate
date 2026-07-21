@@ -26,8 +26,8 @@ Remember **SUMo**? The beloved update monitor died with KC Softwares in 2023. Ka
 
 ### 📦 Applications
 - **Scans everything** — classic installers from the registry (64-bit, 32-bit, per-user) *and* Microsoft Store / MSIX apps that other tools miss (Slack, WhatsApp, Terminal…)
-- **Detects updates via winget** — Microsoft's own package repository, 10,000+ apps
-- **One-click updating** — per-app **Update** button or **Update All**, with live per-row status (Updating… → Updated ✓) and progress counters
+- **Detects updates without needing winget installed** — Karate downloads the winget repository's own package index (13,000+ packages) and matches your apps against it locally; the winget CLI is only used as a fallback
+- **One-click updating** — per-app **Update** button or **Update All**, with live per-row status (Updating… → Updated ✓) and progress counters. Uses winget when present; without it, Karate installs straight from the repository manifest with **SHA-256 verification**
 - Updates sort to the top; counter cards show updates / up-to-date / total at a glance
 
 ### 🔧 Drivers

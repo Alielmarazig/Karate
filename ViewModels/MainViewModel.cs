@@ -127,11 +127,45 @@ public partial class MainViewModel : ObservableObject
             await ScanAsync();
 
         IsBusy = true;
-        ProgressIndeterminate = true;
-        ProgressDetail = $"0/{Apps.Count} apps checked";
-        StatusText = "Querying winget for available updates (this can take a minute)…";
         try
         {
+            // Stage 1: winget-free detection straight from the public package index.
+            StatusText = "Refreshing the winget package index (no winget client needed)…";
+            ProgressIndeterminate = false;
+            ProgressValue = 0;
+            ProgressDetail = "downloading index";
+            var haveIndex = await WingetIndexService.EnsureIndexAsync(new Progress<double>(p => ProgressValue = p));
+
+            List<IndexUpgrade>? matches = null;
+            if (haveIndex)
+            {
+                StatusText = "Matching installed apps against the index…";
+                ProgressIndeterminate = true;
+                var snapshot = Apps.ToList();
+                matches = await Task.Run(() => WingetIndexService.FindUpgrades(snapshot));
+            }
+
+            if (matches is not null)
+            {
+                foreach (var app in Apps)
+                    app.Status = AppStatus.NoKnownUpdate;
+                foreach (var match in matches)
+                {
+                    match.App.AvailableVersion = match.LatestVersion;
+                    match.App.WingetId = match.PackageId;
+                    match.App.Status = AppStatus.UpdateAvailable;
+                }
+                AppsView.Refresh();
+                RefreshCounts();
+                ProgressDetail = $"{Apps.Count}/{Apps.Count} apps checked";
+                StatusText = $"{Apps.Count} applications — {matches.Count} updates available.";
+                return;
+            }
+
+            // Fallback: classic winget CLI parsing (index unavailable).
+            ProgressIndeterminate = true;
+            ProgressDetail = $"0/{Apps.Count} apps checked";
+            StatusText = "Index unavailable — querying the winget client instead…";
             var upgrades = await WingetService.GetUpgradesAsync();
             if (upgrades is null)
             {
@@ -198,16 +232,30 @@ public partial class MainViewModel : ObservableObject
             app.Status = AppStatus.Updating;
             StatusText = $"Updating {app.Name} — a UAC prompt may appear…";
 
-            var (success, exitCode) = await WingetService.UpgradeAsync(app.WingetId);
-            if (success)
+            if (await WingetService.IsClientAvailableAsync())
             {
-                app.Status = AppStatus.Updated;
-                StatusText = $"{app.Name} updated to {app.AvailableVersion}.";
+                var (success, exitCode) = await WingetService.UpgradeAsync(app.WingetId);
+                if (success)
+                {
+                    app.Status = AppStatus.Updated;
+                    StatusText = $"{app.Name} updated to {app.AvailableVersion}.";
+                }
+                else
+                {
+                    app.Status = AppStatus.UpdateFailed;
+                    StatusText = $"Update of {app.Name} failed (winget exit code 0x{exitCode:X8}).";
+                }
             }
             else
             {
-                app.Status = AppStatus.UpdateFailed;
-                StatusText = $"Update of {app.Name} failed (winget exit code 0x{exitCode:X8}).";
+                // Stage 2: no winget client — install straight from the repository
+                // manifest with SHA-256 verification.
+                StatusText = $"Updating {app.Name} directly from the winget repository…";
+                var (success, message) = await WingetManifestInstaller.InstallAsync(app.WingetId, app.AvailableVersion);
+                app.Status = success ? AppStatus.Updated : AppStatus.UpdateFailed;
+                StatusText = success
+                    ? $"{app.Name}: {message}."
+                    : $"Update of {app.Name} failed — {message}.";
             }
         }
         finally

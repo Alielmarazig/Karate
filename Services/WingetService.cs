@@ -8,6 +8,35 @@ public record WingetUpgrade(string Name, string Id, string CurrentVersion, strin
 
 public static class WingetService
 {
+    private static bool? _clientAvailable;
+
+    /// <summary>Whether the winget CLI exists on this machine (cached per run).</summary>
+    public static async Task<bool> IsClientAvailableAsync()
+    {
+        if (_clientAvailable is bool known)
+            return known;
+        try
+        {
+            var psi = new ProcessStartInfo("winget", "--version")
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            using var process = Process.Start(psi);
+            if (process is null)
+                return (bool)(_clientAvailable = false);
+            await process.WaitForExitAsync();
+            _clientAvailable = process.ExitCode == 0;
+        }
+        catch (Win32Exception)
+        {
+            _clientAvailable = false;
+        }
+        return _clientAvailable.Value;
+    }
+
     /// <summary>
     /// Runs `winget upgrade` and parses its table output.
     /// Returns null when winget is not available on this system.

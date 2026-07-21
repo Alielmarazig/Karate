@@ -22,6 +22,26 @@ public partial class App : Application
             return;
         }
 
+        // Diagnostic mode: `Karate.exe --index-test` runs winget-free detection
+        // against the package index and writes the matches to a text file.
+        if (e.Args.Contains("--index-test"))
+        {
+            var report = Task.Run(async () =>
+            {
+                if (!await WingetIndexService.EnsureIndexAsync())
+                    return "index unavailable";
+                var apps = SoftwareInventory.ScanAll();
+                var upgrades = WingetIndexService.FindUpgrades(apps);
+                if (upgrades is null)
+                    return "index query failed";
+                return $"{apps.Count} apps scanned, {upgrades.Count} upgrades found:\n"
+                    + string.Join("\n", upgrades.Select(u => $"{u.App.Name}\t{u.App.Version} -> {u.LatestVersion}\t{u.PackageId}"));
+            }).GetAwaiter().GetResult();
+            File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "karate-index.txt"), report);
+            Shutdown();
+            return;
+        }
+
         // Diagnostic mode: `Karate.exe --dump` writes the scan result to a text
         // file and exits, so detection issues can be debugged without the UI.
         if (e.Args.Contains("--dump"))
