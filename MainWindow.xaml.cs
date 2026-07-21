@@ -20,6 +20,8 @@ public partial class MainWindow : FluentWindow
         Loaded += async (_, _) => await CheckForSelfUpdateAsync(explicitCheck: false);
     }
 
+    private ReleaseInfo? _pendingRelease;
+
     private async void OnCheckSelfUpdateClick(object sender, RoutedEventArgs e) =>
         await CheckForSelfUpdateAsync(explicitCheck: true);
 
@@ -37,45 +39,50 @@ public partial class MainWindow : FluentWindow
             return;
         }
 
-        var prompt = new Wpf.Ui.Controls.MessageBox
-        {
-            Title = "Update available",
-            Content = $"Karate {release.TagName} is available — you have v{SelfUpdateService.CurrentVersion.ToString(3)}.\n\n" +
-                      "Update now? The app restarts itself when done.",
-            PrimaryButtonText = "Update now",
-            CloseButtonText = "Later",
-        };
-        if (await prompt.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary)
+        _pendingRelease = release;
+        vm.SelfUpdateLabel = $"Update to {release.TagName}";
+        vm.SelfUpdateAvailable = true;
+        vm.StatusText = $"Karate {release.TagName} is available — click the update button in the banner.";
+    }
+
+    private async void OnHeroUpdateClick(object sender, RoutedEventArgs e)
+    {
+        if (_pendingRelease is null)
             return;
 
-        vm.IsBusy = true;
-        vm.StatusText = $"Downloading Karate {release.TagName}…";
+        var vm = (MainViewModel)DataContext;
+        vm.SelfUpdateAvailable = false;
+        vm.SelfUpdateDownloading = true;
+        vm.SelfUpdateProgress = 0;
+        vm.StatusText = $"Downloading Karate {_pendingRelease.TagName}…";
+        var progress = new Progress<double>(p => vm.SelfUpdateProgress = p);
+
         try
         {
-            if (SelfUpdateService.IsInstalledCopy && release.MsiUrl.Length > 0)
+            if (SelfUpdateService.IsInstalledCopy && _pendingRelease.MsiUrl.Length > 0)
             {
-                var msi = await SelfUpdateService.DownloadAsync(release.MsiUrl, "KarateUpdate.msi");
+                var msi = await SelfUpdateService.DownloadAsync(_pendingRelease.MsiUrl, "KarateUpdate.msi", progress);
                 vm.StatusText = "Installing update — Karate will restart…";
                 SelfUpdateService.ApplyMsiAndRestart(msi);
             }
-            else if (release.ExeUrl.Length > 0)
+            else if (_pendingRelease.ExeUrl.Length > 0)
             {
-                var exe = await SelfUpdateService.DownloadAsync(release.ExeUrl, "KaratePortableNew.exe");
+                var exe = await SelfUpdateService.DownloadAsync(_pendingRelease.ExeUrl, "KaratePortableNew.exe", progress);
                 vm.StatusText = "Applying update — Karate will restart…";
                 SelfUpdateService.ApplyPortableAndRestart(exe);
             }
             else
             {
-                Process.Start(new ProcessStartInfo(release.HtmlUrl) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(_pendingRelease.HtmlUrl) { UseShellExecute = true });
+                vm.SelfUpdateDownloading = false;
+                vm.SelfUpdateAvailable = true;
             }
         }
         catch
         {
             vm.StatusText = "Update download failed — try again later or grab it from GitHub Releases.";
-        }
-        finally
-        {
-            vm.IsBusy = false;
+            vm.SelfUpdateDownloading = false;
+            vm.SelfUpdateAvailable = true;
         }
     }
 

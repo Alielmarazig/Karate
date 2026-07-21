@@ -32,6 +32,15 @@ public partial class DriversViewModel : ObservableObject
     [ObservableProperty]
     private int _updatesCount;
 
+    [ObservableProperty]
+    private double _progressValue;
+
+    [ObservableProperty]
+    private bool _progressIndeterminate = true;
+
+    [ObservableProperty]
+    private string _progressDetail = "";
+
     public DriversViewModel()
     {
         DriversView = CollectionViewSource.GetDefaultView(Drivers);
@@ -64,6 +73,8 @@ public partial class DriversViewModel : ObservableObject
     private async Task ScanAsync()
     {
         IsBusy = true;
+        ProgressIndeterminate = true;
+        ProgressDetail = "";
         StatusText = "Scanning installed drivers…";
         try
         {
@@ -72,6 +83,7 @@ public partial class DriversViewModel : ObservableObject
             foreach (var driver in drivers)
                 Drivers.Add(driver);
             RefreshCounts();
+            ProgressDetail = $"{Drivers.Count} drivers scanned";
             StatusText = $"{Drivers.Count} drivers found.";
         }
         finally
@@ -87,6 +99,8 @@ public partial class DriversViewModel : ObservableObject
             await ScanAsync();
 
         IsBusy = true;
+        ProgressIndeterminate = true;
+        ProgressDetail = "phase 1/2 — Windows Update";
         StatusText = "Searching Windows Update for driver updates (this can take a few minutes)…";
         try
         {
@@ -161,15 +175,23 @@ public partial class DriversViewModel : ObservableObject
             .Take(20)
             .ToList();
 
+        ProgressIndeterminate = false;
+        ProgressValue = 0;
+
         int i = 0;
         foreach (var group in groups)
         {
             i++;
+            ProgressDetail = $"phase 2/2 — {i - 1}/{groups.Count} devices checked · {groups.Count - i + 1} remaining";
+            ProgressValue = (i - 1) * 100.0 / groups.Count;
             StatusText = $"Checking Microsoft Update Catalog ({i}/{groups.Count}): {group.First().Name}…";
 
             var latest = await CatalogService.GetLatestAsync(group.Key);
             if (latest is null)
+            {
+                ProgressValue = i * 100.0 / groups.Count;
                 continue;
+            }
 
             foreach (var driver in group)
             {
@@ -180,8 +202,14 @@ public partial class DriversViewModel : ObservableObject
                 }
             }
 
+            ProgressValue = i * 100.0 / groups.Count;
             await Task.Delay(250); // be polite to the catalog
         }
+
+        ProgressValue = 100;
+        ProgressDetail = groups.Count > 0
+            ? $"{groups.Count}/{groups.Count} devices checked"
+            : "";
     }
 
     [RelayCommand]
@@ -204,6 +232,8 @@ public partial class DriversViewModel : ObservableObject
         }
 
         driver.Status = AppStatus.Updating;
+        IsBusy = true;
+        ProgressIndeterminate = true;
         StatusText = $"Installing driver update for {driver.Name} — approve the UAC prompt. This can take a while…";
         try
         {
@@ -215,6 +245,7 @@ public partial class DriversViewModel : ObservableObject
         }
         finally
         {
+            IsBusy = false;
             DriversView.Refresh();
             RefreshCounts();
         }

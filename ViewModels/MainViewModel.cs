@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Reflection;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -34,6 +35,32 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private int _upToDateCount;
+
+    // Operation progress (bar under the grid)
+    [ObservableProperty]
+    private double _progressValue;
+
+    [ObservableProperty]
+    private bool _progressIndeterminate = true;
+
+    [ObservableProperty]
+    private string _progressDetail = "";
+
+    // Self-update state (hero banner)
+    [ObservableProperty]
+    private string _appVersion = $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?"}";
+
+    [ObservableProperty]
+    private bool _selfUpdateAvailable;
+
+    [ObservableProperty]
+    private string _selfUpdateLabel = "";
+
+    [ObservableProperty]
+    private bool _selfUpdateDownloading;
+
+    [ObservableProperty]
+    private double _selfUpdateProgress;
 
     public MainViewModel()
     {
@@ -74,6 +101,8 @@ public partial class MainViewModel : ObservableObject
     private async Task ScanAsync()
     {
         IsBusy = true;
+        ProgressIndeterminate = true;
+        ProgressDetail = "";
         StatusText = "Scanning installed software (registry + Microsoft Store)…";
         try
         {
@@ -82,6 +111,7 @@ public partial class MainViewModel : ObservableObject
             foreach (var app in apps)
                 Apps.Add(app);
             RefreshCounts();
+            ProgressDetail = $"{Apps.Count} apps scanned";
             StatusText = $"{Apps.Count} applications found.";
         }
         finally
@@ -97,6 +127,8 @@ public partial class MainViewModel : ObservableObject
             await ScanAsync();
 
         IsBusy = true;
+        ProgressIndeterminate = true;
+        ProgressDetail = $"0/{Apps.Count} apps checked";
         StatusText = "Querying winget for available updates (this can take a minute)…";
         try
         {
@@ -104,10 +136,11 @@ public partial class MainViewModel : ObservableObject
             if (upgrades is null)
             {
                 StatusText = "winget was not found on this system — install 'App Installer' from the Microsoft Store.";
+                ProgressDetail = "";
                 return;
             }
 
-            int updateCount = 0;
+            int updateCount = 0, done = 0;
             foreach (var app in Apps)
             {
                 var match = upgrades.FirstOrDefault(u => NamesMatch(app.Name, u.Name));
@@ -122,10 +155,12 @@ public partial class MainViewModel : ObservableObject
                 {
                     app.Status = AppStatus.NoKnownUpdate;
                 }
+                done++;
             }
 
             AppsView.Refresh();
             RefreshCounts();
+            ProgressDetail = $"{done}/{Apps.Count} apps checked";
             StatusText = $"{Apps.Count} applications — {updateCount} updates available.";
         }
         finally
@@ -139,6 +174,20 @@ public partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private async Task UpdateAppAsync(InstalledApp app)
+    {
+        IsBusy = true;
+        ProgressIndeterminate = true;
+        try
+        {
+            await UpdateAppCoreAsync(app);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task UpdateAppCoreAsync(InstalledApp app)
     {
         if (!app.CanUpdate)
             return;
@@ -179,20 +228,37 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        int done = 0, failed = 0;
-        foreach (var app in pending)
-        {
-            StatusText = $"Updating {done + failed + 1} of {pending.Count}: {app.Name}…";
-            await UpdateAppAsync(app);
-            if (app.Status == AppStatus.Updated)
-                done++;
-            else
-                failed++;
-        }
+        IsBusy = true;
+        ProgressIndeterminate = false;
+        ProgressValue = 0;
 
-        StatusText = failed == 0
-            ? $"All {done} updates installed."
-            : $"{done} updates installed, {failed} failed — see status per app.";
+        int done = 0, failed = 0;
+        try
+        {
+            foreach (var app in pending)
+            {
+                var processed = done + failed;
+                ProgressDetail = $"{processed}/{pending.Count} updated · {pending.Count - processed} remaining";
+                StatusText = $"Updating {processed + 1} of {pending.Count}: {app.Name}…";
+
+                await UpdateAppCoreAsync(app);
+                if (app.Status == AppStatus.Updated)
+                    done++;
+                else
+                    failed++;
+
+                ProgressValue = (done + failed) * 100.0 / pending.Count;
+            }
+
+            ProgressDetail = $"{pending.Count}/{pending.Count} processed";
+            StatusText = failed == 0
+                ? $"All {done} updates installed."
+                : $"{done} updates installed, {failed} failed — see status per app.";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     private static bool NamesMatch(string registryName, string wingetName)

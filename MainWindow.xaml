@@ -159,11 +159,40 @@
                     <TextBlock FontSize="12" Text="Software Update Monitor — apps &amp; drivers in one dojo"
                                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
-                <Border Grid.Column="2" CornerRadius="8" Padding="10,4" VerticalAlignment="Center"
-                        Background="#22FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1">
-                    <TextBlock Text="v0.3.0" FontFamily="Cascadia Mono, Consolas" FontSize="12"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                </Border>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Self-update: arrow pill when available, ring + % while downloading -->
+                    <ui:Button Appearance="Transparent"
+                               Background="#F7A826"
+                               Foreground="#1A1029"
+                               CornerRadius="8"
+                               Padding="10,5"
+                               Margin="0,0,10,0"
+                               Icon="{ui:SymbolIcon ArrowCircleUp24}"
+                               Content="{Binding SelfUpdateLabel}"
+                               FontWeight="SemiBold"
+                               ToolTip="Download and install the new version — Karate restarts itself"
+                               Click="OnHeroUpdateClick"
+                               Visibility="{Binding SelfUpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ui:Button.Effect>
+                            <DropShadowEffect Color="#F7A826" BlurRadius="16" ShadowDepth="0" Opacity="0.6" />
+                        </ui:Button.Effect>
+                    </ui:Button>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,10,0"
+                                Visibility="{Binding SelfUpdateDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ui:ProgressRing Width="22" Height="22"
+                                         IsIndeterminate="False"
+                                         Progress="{Binding SelfUpdateProgress}" />
+                        <TextBlock Text="{Binding SelfUpdateProgress, StringFormat={}{0:0}%}"
+                                   Margin="7,0,0,0" VerticalAlignment="Center"
+                                   FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                                   Foreground="#F7A826" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <Border CornerRadius="8" Padding="10,4" VerticalAlignment="Center"
+                            Background="#22FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1">
+                        <TextBlock Text="{Binding AppVersion}" FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </Border>
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -426,19 +455,31 @@
 
                     <!-- Status -->
                     <Grid Grid.Row="3" Margin="0,10,0,4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <ui:ProgressRing Grid.Column="0"
-                                         IsIndeterminate="True"
-                                         Width="18" Height="18"
-                                         Margin="0,0,10,0"
-                                         Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <TextBlock Grid.Column="1"
-                                   Text="{Binding StatusText}"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ProgressBar Grid.Row="0" Height="6" Margin="0,0,0,7"
+                                     Maximum="100"
+                                     IsIndeterminate="{Binding ProgressIndeterminate}"
+                                     Value="{Binding ProgressValue, Mode=OneWay}"
+                                     Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding StatusText}"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding ProgressDetail}"
+                                       Margin="12,0,0,0" VerticalAlignment="Center"
+                                       FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </Grid>
                     </Grid>
                 </Grid>
             </TabItem>
@@ -621,19 +662,31 @@
 
                     <!-- Status -->
                     <Grid Grid.Row="3" Margin="0,10,0,4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <ui:ProgressRing Grid.Column="0"
-                                         IsIndeterminate="True"
-                                         Width="18" Height="18"
-                                         Margin="0,0,10,0"
-                                         Visibility="{Binding Drivers.IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <TextBlock Grid.Column="1"
-                                   Text="{Binding Drivers.StatusText}"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ProgressBar Grid.Row="0" Height="6" Margin="0,0,0,7"
+                                     Maximum="100"
+                                     IsIndeterminate="{Binding Drivers.ProgressIndeterminate}"
+                                     Value="{Binding Drivers.ProgressValue, Mode=OneWay}"
+                                     Visibility="{Binding Drivers.IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding Drivers.StatusText}"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding Drivers.ProgressDetail}"
+                                       Margin="12,0,0,0" VerticalAlignment="Center"
+                                       FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </Grid>
                     </Grid>
                 </Grid>
             </TabItem>

@@ -67,13 +67,28 @@ public static class SelfUpdateService
         }
     }
 
-    public static async Task<string> DownloadAsync(string url, string fileName)
+    public static async Task<string> DownloadAsync(string url, string fileName, IProgress<double>? progress = null)
     {
         var dir = Path.Combine(Path.GetTempPath(), "Karate");
         Directory.CreateDirectory(dir);
         var path = Path.Combine(dir, fileName);
-        var bytes = await Http.GetByteArrayAsync(url);
-        await File.WriteAllBytesAsync(path, bytes);
+
+        using var response = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+        response.EnsureSuccessStatusCode();
+        var total = response.Content.Headers.ContentLength ?? -1L;
+
+        await using var source = await response.Content.ReadAsStreamAsync();
+        await using var file = File.Create(path);
+        var buffer = new byte[81920];
+        long done = 0;
+        int read;
+        while ((read = await source.ReadAsync(buffer)) > 0)
+        {
+            await file.WriteAsync(buffer.AsMemory(0, read));
+            done += read;
+            if (total > 0)
+                progress?.Report(done * 100.0 / total);
+        }
         return path;
     }
 
