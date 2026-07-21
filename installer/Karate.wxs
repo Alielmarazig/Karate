@@ -3,7 +3,7 @@
 
   <Package Name="Karate"
            Manufacturer="Karate Project"
-           Version="0.3.0"
+           Version="0.4.0"
            UpgradeCode="9b1c3a57-6c2e-4d8f-a1b4-2e5f7d9c0a11"
            Language="1033"
            Scope="perMachine"

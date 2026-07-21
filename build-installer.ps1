@@ -5,7 +5,7 @@
 
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
-$version = "0.3.0"   # keep in sync with <Version> in Karate.csproj and Karate.wxs
+$version = "0.4.0"   # keep in sync with <Version> in Karate.csproj and Karate.wxs
 
 Write-Host "Publishing self-contained release build..." -ForegroundColor Cyan
 dotnet publish "$root\Karate.csproj" -c Release -r win-x64 --self-contained true `
