@@ -49,7 +49,48 @@
             </MenuItem>
         </Menu>
 
-        <TabControl Grid.Row="2" Margin="12,4,12,10" Background="Transparent" BorderThickness="0">
+        <TabControl Grid.Row="2" Margin="16,8,16,10" Background="Transparent" BorderThickness="0" Padding="0,10,0,0">
+            <TabControl.Resources>
+                <!-- Separated pill tabs: light-orange hover, brand gradient when selected -->
+                <Style TargetType="TabItem">
+                    <Setter Property="Cursor" Value="Hand" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="TabPill"
+                                        CornerRadius="10"
+                                        Margin="0,0,10,4"
+                                        Padding="18,9"
+                                        Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        BorderBrush="Transparent">
+                                    <ContentPresenter ContentSource="Header"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="TabPill" Property="Background" Value="#33F7A826" />
+                                        <Setter TargetName="TabPill" Property="BorderBrush" Value="#80F7A826" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="TabPill" Property="Background">
+                                            <Setter.Value>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                    <GradientStop Color="#6C63FF" Offset="0" />
+                                                    <GradientStop Color="#2F80ED" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter TargetName="TabPill" Property="BorderBrush" Value="Transparent" />
+                                        <Setter TargetName="TabPill" Property="TextElement.Foreground" Value="White" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
 
             <!-- ======================= Applications tab ======================= -->
             <TabItem>
@@ -109,28 +150,46 @@
 
                     <!-- Counters -->
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
-                        <Border CornerRadius="8" Padding="16,10" Margin="0,0,10,0"
+                        <Border CornerRadius="10" Padding="14,10" Margin="0,0,10,0"
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding UpdatesCount}" FontSize="22" FontWeight="Bold" Foreground="#F7A826" />
-                                <TextBlock Text="Updates available" FontSize="12"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="38" Height="38" CornerRadius="9" Background="#26F7A826" VerticalAlignment="Center">
+                                    <ui:SymbolIcon Symbol="ArrowDownload24" FontSize="19" Foreground="#F7A826"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="12,0,4,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding UpdatesCount}" FontSize="20" FontWeight="Bold" Foreground="#F7A826" />
+                                    <TextBlock Text="Updates available" FontSize="12"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
-                        <Border CornerRadius="8" Padding="16,10" Margin="0,0,10,0"
+                        <Border CornerRadius="10" Padding="14,10" Margin="0,0,10,0"
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding UpToDateCount}" FontSize="22" FontWeight="Bold" Foreground="#3FB950" />
-                                <TextBlock Text="Up to date" FontSize="12"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="38" Height="38" CornerRadius="9" Background="#263FB950" VerticalAlignment="Center">
+                                    <ui:SymbolIcon Symbol="CheckmarkCircle24" FontSize="19" Foreground="#3FB950"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="12,0,4,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding UpToDateCount}" FontSize="20" FontWeight="Bold" Foreground="#3FB950" />
+                                    <TextBlock Text="Up to date" FontSize="12"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
-                        <Border CornerRadius="8" Padding="16,10"
+                        <Border CornerRadius="10" Padding="14,10"
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding TotalCount}" FontSize="22" FontWeight="Bold" />
-                                <TextBlock Text="Applications" FontSize="12"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="38" Height="38" CornerRadius="9" Background="#266C63FF" VerticalAlignment="Center">
+                                    <ui:SymbolIcon Symbol="Apps24" FontSize="19" Foreground="#8B85FF"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="12,0,4,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding TotalCount}" FontSize="20" FontWeight="Bold" />
+                                    <TextBlock Text="Applications" FontSize="12"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -156,6 +215,9 @@
                                     <Style.Triggers>
                                         <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                                             <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#2BF7A826" />
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -278,20 +340,32 @@
 
                     <!-- Counters -->
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
-                        <Border CornerRadius="8" Padding="16,10" Margin="0,0,10,0"
+                        <Border CornerRadius="10" Padding="14,10" Margin="0,0,10,0"
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding Drivers.UpdatesCount}" FontSize="22" FontWeight="Bold" Foreground="#F7A826" />
-                                <TextBlock Text="Updates available" FontSize="12"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="38" Height="38" CornerRadius="9" Background="#26F7A826" VerticalAlignment="Center">
+                                    <ui:SymbolIcon Symbol="ArrowDownload24" FontSize="19" Foreground="#F7A826"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="12,0,4,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Drivers.UpdatesCount}" FontSize="20" FontWeight="Bold" Foreground="#F7A826" />
+                                    <TextBlock Text="Updates available" FontSize="12"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
-                        <Border CornerRadius="8" Padding="16,10"
+                        <Border CornerRadius="10" Padding="14,10"
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding Drivers.TotalCount}" FontSize="22" FontWeight="Bold" />
-                                <TextBlock Text="Drivers" FontSize="12"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="38" Height="38" CornerRadius="9" Background="#266C63FF" VerticalAlignment="Center">
+                                    <ui:SymbolIcon Symbol="DeveloperBoard24" FontSize="19" Foreground="#8B85FF"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="12,0,4,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Drivers.TotalCount}" FontSize="20" FontWeight="Bold" />
+                                    <TextBlock Text="Drivers" FontSize="12"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -317,6 +391,9 @@
                                     <Style.Triggers>
                                         <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                                             <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#2BF7A826" />
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
