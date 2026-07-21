@@ -118,6 +118,8 @@
                           IsChecked="{Binding UpdatesOnly}" />
             </MenuItem>
             <MenuItem Header="_Help">
+                <MenuItem Header="Check for _Updates…" Click="OnCheckSelfUpdateClick" />
+                <Separator />
                 <MenuItem Header="_About Karate" Click="OnAboutClick" />
             </MenuItem>
         </Menu>
