@@ -43,6 +43,44 @@ public static class WingetService
         return ParseUpgradeOutput(output);
     }
 
+    /// <summary>
+    /// Upgrades a single package by exact winget id. Installers may still pop a
+    /// UAC prompt — that is expected and stays in the user's hands.
+    /// </summary>
+    public static async Task<(bool Success, int ExitCode)> UpgradeAsync(string wingetId)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "winget",
+                Arguments = $"upgrade --id \"{wingetId}\" --exact --silent " +
+                            "--accept-package-agreements --accept-source-agreements --disable-interactivity",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8,
+            };
+
+            using var process = Process.Start(psi);
+            if (process is null)
+                return (false, -1);
+
+            // Drain streams so the process can't block on a full pipe buffer.
+            var stdout = process.StandardOutput.ReadToEndAsync();
+            var stderr = process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            await Task.WhenAll(stdout, stderr);
+
+            return (process.ExitCode == 0, process.ExitCode);
+        }
+        catch (Win32Exception)
+        {
+            return (false, -1);
+        }
+    }
+
     internal static List<WingetUpgrade> ParseUpgradeOutput(string output)
     {
         var upgrades = new List<WingetUpgrade>();

@@ -10,7 +10,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyTitle>Karate — Software Update Monitor</AssemblyTitle>
     <Product>Karate</Product>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <ApplicationIcon>Assets\karate.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="System.Management" Version="10.0.10" />
     <PackageReference Include="WPF-UI" Version="4.3.0" />
   </ItemGroup>
 

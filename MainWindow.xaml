@@ -8,8 +8,8 @@
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="Karate"
-        Height="760" Width="1180"
-        MinHeight="480" MinWidth="760"
+        Height="780" Width="1220"
+        MinHeight="520" MinWidth="820"
         WindowStartupLocation="CenterScreen"
         ExtendsContentIntoTitleBar="True"
         WindowBackdropType="Mica"
@@ -19,9 +19,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <ui:TitleBar Grid.Row="0" Title="Karate — Software Update Monitor">
@@ -33,8 +31,11 @@
         <!-- Menu -->
         <Menu Grid.Row="1" Margin="12,0,12,0" Background="Transparent">
             <MenuItem Header="_File">
-                <MenuItem Header="_Scan" Command="{Binding ScanCommand}" />
-                <MenuItem Header="_Check for Updates" Command="{Binding CheckUpdatesCommand}" />
+                <MenuItem Header="_Scan Applications" Command="{Binding ScanCommand}" />
+                <MenuItem Header="_Check for App Updates" Command="{Binding CheckUpdatesCommand}" />
+                <Separator />
+                <MenuItem Header="Scan _Drivers" Command="{Binding Drivers.ScanCommand}" />
+                <MenuItem Header="Check for Driver _Updates" Command="{Binding Drivers.CheckUpdatesCommand}" />
                 <Separator />
                 <MenuItem Header="E_xit" Click="OnExitClick" />
             </MenuItem>
@@ -48,109 +49,321 @@
             </MenuItem>
         </Menu>
 
-        <!-- Toolbar -->
-        <Grid Grid.Row="2" Margin="20,12,20,12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <TabControl Grid.Row="2" Margin="12,4,12,10" Background="Transparent" BorderThickness="0">
 
-            <ui:Button Grid.Column="0"
-                       Appearance="Primary"
-                       Icon="{ui:SymbolIcon Search24}"
-                       Content="Scan"
-                       Command="{Binding ScanCommand}"
-                       Margin="0,0,8,0" />
+            <!-- ======================= Applications tab ======================= -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Apps24" Margin="0,0,6,0" />
+                        <TextBlock Text="Applications" />
+                    </StackPanel>
+                </TabItem.Header>
+                <Grid Margin="8,10,8,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-            <ui:Button Grid.Column="1"
-                       Icon="{ui:SymbolIcon ArrowSync24}"
-                       Content="Check for Updates"
-                       Command="{Binding CheckUpdatesCommand}"
-                       Margin="0,0,16,0" />
+                    <!-- Toolbar -->
+                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-            <CheckBox Grid.Column="2"
-                      Content="Updates only"
-                      VerticalAlignment="Center"
-                      IsChecked="{Binding UpdatesOnly}" />
+                        <ui:Button Grid.Column="0"
+                                   Appearance="Primary"
+                                   Icon="{ui:SymbolIcon Search24}"
+                                   Content="Scan"
+                                   Command="{Binding ScanCommand}"
+                                   Margin="0,0,8,0" />
 
-            <ui:TextBox Grid.Column="4"
-                        Width="300"
-                        Icon="{ui:SymbolIcon Search24}"
-                        PlaceholderText="Search by name or publisher…"
-                        Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
-        </Grid>
+                        <ui:Button Grid.Column="1"
+                                   Icon="{ui:SymbolIcon ArrowSync24}"
+                                   Content="Check for Updates"
+                                   Command="{Binding CheckUpdatesCommand}"
+                                   Margin="0,0,8,0" />
 
-        <!-- Application list -->
-        <Border Grid.Row="3"
-                Margin="20,0,20,12"
-                CornerRadius="8"
-                Background="{DynamicResource ControlFillColorDefaultBrush}">
-            <ui:DataGrid ItemsSource="{Binding AppsView}"
-                         AutoGenerateColumns="False"
-                         IsReadOnly="True"
-                         CanUserAddRows="False"
-                         SelectionMode="Single"
-                         GridLinesVisibility="None"
-                         HeadersVisibility="Column"
-                         BorderThickness="0"
-                         Background="Transparent"
-                         Margin="4"
-                         AlternationCount="2">
-                <ui:DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
-                        <Setter Property="Background" Value="Transparent" />
-                        <Style.Triggers>
-                            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </ui:DataGrid.RowStyle>
-                <ui:DataGrid.Columns>
-                    <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" />
-                    <DataGridTextColumn Header="Installed" Binding="{Binding Version}" Width="140" />
-                    <DataGridTextColumn Header="Available" Binding="{Binding AvailableVersion}" Width="140" />
-                    <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="200" />
-                    <DataGridTextColumn Header="Source" Binding="{Binding RegistrySource}" Width="140" />
-                    <DataGridTemplateColumn Header="Status" Width="170">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Ellipse Width="8" Height="8"
-                                             Fill="{Binding StatusBrush}"
-                                             Margin="0,0,8,0"
-                                             VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding StatusDisplay}"
-                                               Foreground="{Binding StatusBrush}"
-                                               VerticalAlignment="Center" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </ui:DataGrid.Columns>
-            </ui:DataGrid>
-        </Border>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <ui:Button Icon="{ui:SymbolIcon ArrowDownload24}"
+                                       Content="Update All"
+                                       Command="{Binding UpdateAllCommand}"
+                                       Margin="0,0,16,0" />
+                            <CheckBox Content="Updates only"
+                                      VerticalAlignment="Center"
+                                      IsChecked="{Binding UpdatesOnly}" />
+                        </StackPanel>
 
-        <!-- Status bar -->
-        <Grid Grid.Row="4" Margin="20,0,20,14">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+                        <ui:TextBox Grid.Column="4"
+                                    Width="300"
+                                    Icon="{ui:SymbolIcon Search24}"
+                                    PlaceholderText="Search by name or publisher…"
+                                    Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
 
-            <ui:ProgressRing Grid.Column="0"
-                             IsIndeterminate="True"
-                             Width="18" Height="18"
-                             Margin="0,0,10,0"
-                             Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <!-- Counters -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+                        <Border CornerRadius="8" Padding="16,10" Margin="0,0,10,0"
+                                Background="{DynamicResource ControlFillColorDefaultBrush}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding UpdatesCount}" FontSize="22" FontWeight="Bold" Foreground="#F7A826" />
+                                <TextBlock Text="Updates available" FontSize="12"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border CornerRadius="8" Padding="16,10" Margin="0,0,10,0"
+                                Background="{DynamicResource ControlFillColorDefaultBrush}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding UpToDateCount}" FontSize="22" FontWeight="Bold" Foreground="#3FB950" />
+                                <TextBlock Text="Up to date" FontSize="12"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border CornerRadius="8" Padding="16,10"
+                                Background="{DynamicResource ControlFillColorDefaultBrush}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding TotalCount}" FontSize="22" FontWeight="Bold" />
+                                <TextBlock Text="Applications" FontSize="12"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
 
-            <TextBlock Grid.Column="1"
-                       Text="{Binding StatusText}"
-                       VerticalAlignment="Center"
-                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-        </Grid>
+                    <!-- Application list -->
+                    <Border Grid.Row="2"
+                            CornerRadius="8"
+                            Background="{DynamicResource ControlFillColorDefaultBrush}">
+                        <ui:DataGrid ItemsSource="{Binding AppsView}"
+                                     AutoGenerateColumns="False"
+                                     IsReadOnly="True"
+                                     CanUserAddRows="False"
+                                     SelectionMode="Single"
+                                     GridLinesVisibility="None"
+                                     HeadersVisibility="Column"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     Margin="4"
+                                     AlternationCount="2">
+                            <ui:DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:DataGrid.RowStyle>
+                            <ui:DataGrid.Columns>
+                                <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" />
+                                <DataGridTextColumn Header="Installed" Binding="{Binding Version}" Width="140" />
+                                <DataGridTextColumn Header="Available" Binding="{Binding AvailableVersion}" Width="140" />
+                                <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="200" />
+                                <DataGridTextColumn Header="Source" Binding="{Binding RegistrySource}" Width="140" />
+                                <DataGridTemplateColumn Header="Status" Width="170">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Ellipse Width="8" Height="8"
+                                                         Fill="{Binding StatusBrush}"
+                                                         Margin="0,0,8,0"
+                                                         VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding StatusDisplay}"
+                                                           Foreground="{Binding StatusBrush}"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="" Width="110">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ui:Button Content="Update"
+                                                       Appearance="Secondary"
+                                                       Icon="{ui:SymbolIcon ArrowDownload24}"
+                                                       Padding="8,4"
+                                                       HorizontalAlignment="Center"
+                                                       Visibility="{Binding CanUpdate, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                       Command="{Binding DataContext.UpdateAppCommand, RelativeSource={RelativeSource AncestorType={x:Type ui:DataGrid}}}"
+                                                       CommandParameter="{Binding}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </ui:DataGrid.Columns>
+                        </ui:DataGrid>
+                    </Border>
+
+                    <!-- Status -->
+                    <Grid Grid.Row="3" Margin="0,10,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ui:ProgressRing Grid.Column="0"
+                                         IsIndeterminate="True"
+                                         Width="18" Height="18"
+                                         Margin="0,0,10,0"
+                                         Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding StatusText}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- ========================= Drivers tab ========================== -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="DeveloperBoard24" Margin="0,0,6,0" />
+                        <TextBlock Text="Drivers" />
+                    </StackPanel>
+                </TabItem.Header>
+                <Grid Margin="8,10,8,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Toolbar -->
+                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <ui:Button Grid.Column="0"
+                                   Appearance="Primary"
+                                   Icon="{ui:SymbolIcon Search24}"
+                                   Content="Scan"
+                                   Command="{Binding Drivers.ScanCommand}"
+                                   Margin="0,0,8,0" />
+
+                        <ui:Button Grid.Column="1"
+                                   Icon="{ui:SymbolIcon ArrowSync24}"
+                                   Content="Check for Updates"
+                                   Command="{Binding Drivers.CheckUpdatesCommand}"
+                                   Margin="0,0,8,0" />
+
+                        <ui:Button Grid.Column="2"
+                                   Icon="{ui:SymbolIcon Open24}"
+                                   Content="Open Windows Update"
+                                   Command="{Binding Drivers.OpenWindowsUpdateCommand}"
+                                   Margin="0,0,16,0" />
+
+                        <CheckBox Grid.Column="3"
+                                  Content="Updates only"
+                                  VerticalAlignment="Center"
+                                  IsChecked="{Binding Drivers.UpdatesOnly}" />
+
+                        <ui:TextBox Grid.Column="5"
+                                    Width="280"
+                                    Icon="{ui:SymbolIcon Search24}"
+                                    PlaceholderText="Search by device, class or vendor…"
+                                    Text="{Binding Drivers.SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+
+                    <!-- Counters -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+                        <Border CornerRadius="8" Padding="16,10" Margin="0,0,10,0"
+                                Background="{DynamicResource ControlFillColorDefaultBrush}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Drivers.UpdatesCount}" FontSize="22" FontWeight="Bold" Foreground="#F7A826" />
+                                <TextBlock Text="Updates available" FontSize="12"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border CornerRadius="8" Padding="16,10"
+                                Background="{DynamicResource ControlFillColorDefaultBrush}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Drivers.TotalCount}" FontSize="22" FontWeight="Bold" />
+                                <TextBlock Text="Drivers" FontSize="12"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Driver list -->
+                    <Border Grid.Row="2"
+                            CornerRadius="8"
+                            Background="{DynamicResource ControlFillColorDefaultBrush}">
+                        <ui:DataGrid ItemsSource="{Binding Drivers.DriversView}"
+                                     AutoGenerateColumns="False"
+                                     IsReadOnly="True"
+                                     CanUserAddRows="False"
+                                     SelectionMode="Single"
+                                     GridLinesVisibility="None"
+                                     HeadersVisibility="Column"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     Margin="4"
+                                     AlternationCount="2">
+                            <ui:DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:DataGrid.RowStyle>
+                            <ui:DataGrid.Columns>
+                                <DataGridTextColumn Header="Device" Binding="{Binding Name}" Width="*" />
+                                <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="110" />
+                                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="150" />
+                                <DataGridTextColumn Header="Date" Binding="{Binding DriverDate}" Width="100" />
+                                <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="170" />
+                                <DataGridTemplateColumn Header="Status" Width="170">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Ellipse Width="8" Height="8"
+                                                         Fill="{Binding StatusBrush}"
+                                                         Margin="0,0,8,0"
+                                                         VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding StatusDisplay}"
+                                                           Foreground="{Binding StatusBrush}"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </ui:DataGrid.Columns>
+                        </ui:DataGrid>
+                    </Border>
+
+                    <!-- Status -->
+                    <Grid Grid.Row="3" Margin="0,10,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ui:ProgressRing Grid.Column="0"
+                                         IsIndeterminate="True"
+                                         Width="18" Height="18"
+                                         Margin="0,0,10,0"
+                                         Visibility="{Binding Drivers.IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding Drivers.StatusText}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </ui:FluentWindow>

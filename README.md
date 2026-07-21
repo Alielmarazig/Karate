@@ -5,11 +5,19 @@ installed software and tells you which apps have updates available.
 
 ## How it works
 
+**Applications tab**
 1. **Scan** — enumerates installed software from the Windows registry uninstall keys
-   (HKLM 64-bit, HKLM 32-bit/WOW6432Node, and HKCU), filtering out system components,
-   hotfixes, and child entries of larger installers.
+   (HKLM 64-bit, HKLM 32-bit/WOW6432Node, and HKCU) plus Microsoft Store / MSIX
+   packages, filtering out system components, hotfixes, and child entries.
 2. **Check for Updates** — runs `winget upgrade` in the background, parses the results,
-   and matches them against the scanned apps to flag which ones are outdated.
+   and matches them against the scanned apps. Apps with updates sort to the top and
+   counter cards show updates / up-to-date / total at a glance.
+
+**Drivers tab**
+1. **Scan** — enumerates installed device drivers via WMI (`Win32_PnPSignedDriver`).
+2. **Check for Updates** — queries the Windows Update Agent COM API for available
+   driver updates (`Type='Driver'`) and matches them to devices by hardware ID.
+   Installation is left to Windows Update itself (one click away).
 
 ## Tech stack
 
@@ -22,11 +30,15 @@ installed software and tells you which apps have updates available.
 
 | Path | Purpose |
 |---|---|
-| `Models/InstalledApp.cs` | App model with update status (observable) |
+| `Models/UpdatableItem.cs` | Shared base: update status, sort rank, status colors |
+| `Models/InstalledApp.cs`, `Models/DriverInfo.cs` | App / driver models |
 | `Services/RegistryScanner.cs` | Registry-based installed-software enumeration |
+| `Services/StoreAppScanner.cs` | Microsoft Store / MSIX package enumeration |
 | `Services/WingetService.cs` | Runs and parses `winget upgrade` |
-| `ViewModels/MainViewModel.cs` | Scan / check-updates commands, search & filtering |
-| `MainWindow.xaml` | Fluent UI: toolbar, data grid, status bar |
+| `Services/DriverScanner.cs` | WMI driver enumeration (`Win32_PnPSignedDriver`) |
+| `Services/DriverUpdateService.cs` | Windows Update Agent COM search for driver updates |
+| `ViewModels/` | Per-tab commands, counters, search & filtering |
+| `MainWindow.xaml` | Fluent UI: tabs, toolbars, counter cards, data grids |
 
 ## Build & run
 
