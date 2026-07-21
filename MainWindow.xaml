@@ -12,17 +12,40 @@
         MinHeight="520" MinWidth="820"
         WindowStartupLocation="CenterScreen"
         ExtendsContentIntoTitleBar="True"
-        WindowBackdropType="Mica"
+        WindowBackdropType="Acrylic"
         WindowCornerPreference="Round">
 
-    <Grid>
+    <ui:FluentWindow.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="RootGrid"
+                                     Storyboard.TargetProperty="Opacity"
+                                     From="0" To="1" Duration="0:0:0.45" />
+                    <DoubleAnimation Storyboard.TargetName="RootSlide"
+                                     Storyboard.TargetProperty="Y"
+                                     From="16" To="0" Duration="0:0:0.45">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </ui:FluentWindow.Triggers>
+
+    <Grid x:Name="RootGrid">
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="RootSlide" />
+        </Grid.RenderTransform>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="Karate — Software Update Monitor">
+        <ui:TitleBar Grid.Row="0" Title="Karate">
             <ui:TitleBar.Icon>
                 <ui:ImageIcon Source="pack://application:,,,/Assets/karate.png" />
             </ui:TitleBar.Icon>
@@ -49,8 +72,55 @@
             </MenuItem>
         </Menu>
 
-        <TabControl Grid.Row="2" Margin="16,8,16,10" Background="Transparent" BorderThickness="0" Padding="0,10,0,0">
+        <!-- Hero banner -->
+        <Border Grid.Row="2" Margin="20,8,20,2" CornerRadius="14" Padding="16,12">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#2E6C63FF" Offset="0" />
+                    <GradientStop Color="#1A2F80ED" Offset="0.55" />
+                    <GradientStop Color="#24F7A826" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Image Grid.Column="0" Source="pack://application:,,,/Assets/karate.png"
+                       Width="42" Height="42" VerticalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality">
+                    <Image.Effect>
+                        <DropShadowEffect Color="#6C63FF" BlurRadius="18" ShadowDepth="0" Opacity="0.6" />
+                    </Image.Effect>
+                </Image>
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <TextBlock FontSize="21" FontWeight="ExtraBold" Text="KARATE">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#8B85FF" Offset="0" />
+                                <GradientStop Color="#5AA7FF" Offset="0.5" />
+                                <GradientStop Color="#F7A826" Offset="1" />
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                    <TextBlock FontSize="12" Text="Software Update Monitor — apps &amp; drivers in one dojo"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+                <Border Grid.Column="2" CornerRadius="8" Padding="10,4" VerticalAlignment="Center"
+                        Background="#22FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1">
+                    <TextBlock Text="v0.3.0" FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <TabControl Grid.Row="3" Margin="16,8,16,10" Background="Transparent" BorderThickness="0" Padding="0,10,0,0">
             <TabControl.Resources>
+                <Style x:Key="MonoCell" TargetType="TextBlock">
+                    <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                </Style>
                 <!-- Separated pill tabs: light-orange hover, brand gradient when selected -->
                 <Style TargetType="TabItem">
                     <Setter Property="Cursor" Value="Hand" />
@@ -59,11 +129,15 @@
                             <ControlTemplate TargetType="TabItem">
                                 <Border x:Name="TabPill"
                                         CornerRadius="10"
-                                        Margin="0,0,10,4"
+                                        Margin="0,0,10,6"
                                         Padding="18,9"
                                         Background="{DynamicResource ControlFillColorDefaultBrush}"
                                         BorderThickness="1"
-                                        BorderBrush="Transparent">
+                                        BorderBrush="Transparent"
+                                        RenderTransformOrigin="0.5,0.5">
+                                    <Border.RenderTransform>
+                                        <ScaleTransform x:Name="PillScale" ScaleX="1" ScaleY="1" />
+                                    </Border.RenderTransform>
                                     <ContentPresenter ContentSource="Header"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
@@ -72,6 +146,35 @@
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter TargetName="TabPill" Property="Background" Value="#33F7A826" />
                                         <Setter TargetName="TabPill" Property="BorderBrush" Value="#80F7A826" />
+                                        <Setter TargetName="TabPill" Property="Effect">
+                                            <Setter.Value>
+                                                <DropShadowEffect Color="#F7A826" BlurRadius="16" ShadowDepth="0" Opacity="0.5" />
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetName="PillScale"
+                                                                     Storyboard.TargetProperty="ScaleX"
+                                                                     To="1.05" Duration="0:0:0.12" />
+                                                    <DoubleAnimation Storyboard.TargetName="PillScale"
+                                                                     Storyboard.TargetProperty="ScaleY"
+                                                                     To="1.05" Duration="0:0:0.12" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                        <Trigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetName="PillScale"
+                                                                     Storyboard.TargetProperty="ScaleX"
+                                                                     To="1" Duration="0:0:0.15" />
+                                                    <DoubleAnimation Storyboard.TargetName="PillScale"
+                                                                     Storyboard.TargetProperty="ScaleY"
+                                                                     To="1" Duration="0:0:0.15" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.ExitActions>
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="True">
                                         <Setter TargetName="TabPill" Property="Background">
@@ -84,6 +187,11 @@
                                         </Setter>
                                         <Setter TargetName="TabPill" Property="BorderBrush" Value="Transparent" />
                                         <Setter TargetName="TabPill" Property="TextElement.Foreground" Value="White" />
+                                        <Setter TargetName="TabPill" Property="Effect">
+                                            <Setter.Value>
+                                                <DropShadowEffect Color="#6C63FF" BlurRadius="20" ShadowDepth="0" Opacity="0.55" />
+                                            </Setter.Value>
+                                        </Setter>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -154,6 +262,7 @@
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
                             <StackPanel Orientation="Horizontal">
                                 <Border Width="38" Height="38" CornerRadius="9" Background="#26F7A826" VerticalAlignment="Center">
+                                    <Border.Effect><DropShadowEffect Color="#F7A826" BlurRadius="14" ShadowDepth="0" Opacity="0.45" /></Border.Effect>
                                     <ui:SymbolIcon Symbol="ArrowDownload24" FontSize="19" Foreground="#F7A826"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
@@ -168,6 +277,7 @@
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
                             <StackPanel Orientation="Horizontal">
                                 <Border Width="38" Height="38" CornerRadius="9" Background="#263FB950" VerticalAlignment="Center">
+                                    <Border.Effect><DropShadowEffect Color="#3FB950" BlurRadius="14" ShadowDepth="0" Opacity="0.45" /></Border.Effect>
                                     <ui:SymbolIcon Symbol="CheckmarkCircle24" FontSize="19" Foreground="#3FB950"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
@@ -182,6 +292,7 @@
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
                             <StackPanel Orientation="Horizontal">
                                 <Border Width="38" Height="38" CornerRadius="9" Background="#266C63FF" VerticalAlignment="Center">
+                                    <Border.Effect><DropShadowEffect Color="#6C63FF" BlurRadius="14" ShadowDepth="0" Opacity="0.45" /></Border.Effect>
                                     <ui:SymbolIcon Symbol="Apps24" FontSize="19" Foreground="#8B85FF"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
@@ -224,8 +335,8 @@
                             </ui:DataGrid.RowStyle>
                             <ui:DataGrid.Columns>
                                 <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" />
-                                <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="130" />
-                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="130" />
+                                <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="130" ElementStyle="{StaticResource MonoCell}" />
+                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="130" ElementStyle="{StaticResource MonoCell}" />
                                 <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="200" />
                                 <DataGridTextColumn Header="Source" Binding="{Binding RegistrySource}" Width="140" />
                                 <DataGridTemplateColumn Header="Status" Width="170">
@@ -344,6 +455,7 @@
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
                             <StackPanel Orientation="Horizontal">
                                 <Border Width="38" Height="38" CornerRadius="9" Background="#26F7A826" VerticalAlignment="Center">
+                                    <Border.Effect><DropShadowEffect Color="#F7A826" BlurRadius="14" ShadowDepth="0" Opacity="0.45" /></Border.Effect>
                                     <ui:SymbolIcon Symbol="ArrowDownload24" FontSize="19" Foreground="#F7A826"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
@@ -358,6 +470,7 @@
                                 Background="{DynamicResource ControlFillColorDefaultBrush}">
                             <StackPanel Orientation="Horizontal">
                                 <Border Width="38" Height="38" CornerRadius="9" Background="#266C63FF" VerticalAlignment="Center">
+                                    <Border.Effect><DropShadowEffect Color="#6C63FF" BlurRadius="14" ShadowDepth="0" Opacity="0.45" /></Border.Effect>
                                     <ui:SymbolIcon Symbol="DeveloperBoard24" FontSize="19" Foreground="#8B85FF"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
@@ -401,9 +514,9 @@
                             <ui:DataGrid.Columns>
                                 <DataGridTextColumn Header="Device" Binding="{Binding Name}" Width="*" />
                                 <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="100" />
-                                <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="130" />
-                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="170" />
-                                <DataGridTextColumn Header="Date" Binding="{Binding DriverDate}" Width="95" />
+                                <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="130" ElementStyle="{StaticResource MonoCell}" />
+                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="170" ElementStyle="{StaticResource MonoCell}" />
+                                <DataGridTextColumn Header="Date" Binding="{Binding DriverDate}" Width="95" ElementStyle="{StaticResource MonoCell}" />
                                 <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="150" />
                                 <DataGridTemplateColumn Header="Status" Width="170">
                                     <DataGridTemplateColumn.CellTemplate>
