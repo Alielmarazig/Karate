@@ -126,7 +126,7 @@ public partial class DriversViewModel : ObservableObject
                 var match = FindMatch(update);
                 if (match is not null)
                 {
-                    match.AvailableVersion = CompactLabel(update.Title, "Windows Update");
+                    match.AvailableVersion = CompactLabel(update.Title);
                     match.WuUpdateId = update.UpdateId;
                     match.Severity = ComputeSeverity(update.MsrcSeverity, update.IsMandatory, update.AutoSelect, update.BrowseOnly, match.DeviceClass);
                     match.Status = AppStatus.UpdateAvailable;
@@ -141,7 +141,7 @@ public partial class DriversViewModel : ObservableObject
                         Manufacturer = update.Manufacturer,
                         HardwareId = update.HardwareId,
                         Source = "Windows Update",
-                        AvailableVersion = CompactLabel(update.Title, "Windows Update"),
+                        AvailableVersion = CompactLabel(update.Title),
                         WuUpdateId = update.UpdateId,
                         Severity = ComputeSeverity(update.MsrcSeverity, update.IsMandatory, update.AutoSelect, update.BrowseOnly, ""),
                         Status = AppStatus.UpdateAvailable,
@@ -202,7 +202,7 @@ public partial class DriversViewModel : ObservableObject
             {
                 if (Version.TryParse(driver.Version, out var installed) && latest.Version > installed)
                 {
-                    driver.AvailableVersion = $"{latest.Version} (Catalog)";
+                    driver.AvailableVersion = latest.Version.ToString();
                     driver.Severity = ComputeSeverity("", false, false, false, driver.DeviceClass);
                     driver.Status = AppStatus.UpdateAvailable;
                 }
@@ -291,11 +291,11 @@ public partial class DriversViewModel : ObservableObject
         };
     }
 
-    /// <summary>"Intel Corporation - Net - 23.100.0.5" → "23.100.0.5 (Windows Update)".</summary>
-    private static string CompactLabel(string title, string channel)
+    /// <summary>"Intel Corporation - Net - 23.100.0.5" → "23.100.0.5".</summary>
+    private static string CompactLabel(string title)
     {
         var m = System.Text.RegularExpressions.Regex.Match(title, @"\d+\.\d+(\.\d+){1,3}");
-        return m.Success ? $"{m.Value} ({channel})" : title;
+        return m.Success ? m.Value : title;
     }
 
     private DriverInfo? FindMatch(DriverUpdate update)
