@@ -30,6 +30,7 @@ public partial class DriverInfo : UpdatableItem
     partial void OnSeverityChanged(string value)
     {
         OnPropertyChanged(nameof(SeverityBrush));
+        OnPropertyChanged(nameof(SeverityTintBrush));
         OnPropertyChanged(nameof(HasSeverity));
     }
 
@@ -38,14 +39,28 @@ public partial class DriverInfo : UpdatableItem
     private static readonly Brush CriticalBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xE5, 0x48, 0x4D)));
     private static readonly Brush ImportantBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xF7, 0xA8, 0x26)));
     private static readonly Brush ModerateBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xF5, 0xC5, 0x18)));
-    private static readonly Brush OptionalBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x8B, 0x94, 0x9E)));
+    private static readonly Brush LowBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x8B, 0x94, 0x9E)));
+
+    private static readonly Brush CriticalTint = Freeze(new SolidColorBrush(Color.FromArgb(0x28, 0xE5, 0x48, 0x4D)));
+    private static readonly Brush ImportantTint = Freeze(new SolidColorBrush(Color.FromArgb(0x28, 0xF7, 0xA8, 0x26)));
+    private static readonly Brush ModerateTint = Freeze(new SolidColorBrush(Color.FromArgb(0x28, 0xF5, 0xC5, 0x18)));
+    private static readonly Brush LowTint = Freeze(new SolidColorBrush(Color.FromArgb(0x28, 0x8B, 0x94, 0x9E)));
 
     public Brush SeverityBrush => Severity switch
     {
         "Critical" => CriticalBrush,
         "Important" => ImportantBrush,
         "Moderate" => ModerateBrush,
-        _ => OptionalBrush,
+        _ => LowBrush,
+    };
+
+    /// <summary>Translucent background for the severity badge.</summary>
+    public Brush SeverityTintBrush => Severity switch
+    {
+        "Critical" => CriticalTint,
+        "Important" => ImportantTint,
+        "Moderate" => ModerateTint,
+        _ => LowTint,
     };
 
     private static Brush Freeze(SolidColorBrush brush)

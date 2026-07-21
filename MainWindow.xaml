@@ -412,6 +412,7 @@
                             <ui:DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                     <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="MinHeight" Value="38" />
                                     <Style.Triggers>
                                         <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                                             <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
@@ -602,6 +603,7 @@
                             <ui:DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                     <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="MinHeight" Value="38" />
                                     <Style.Triggers>
                                         <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                                             <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
@@ -614,28 +616,33 @@
                             </ui:DataGrid.RowStyle>
                             <ui:DataGrid.Columns>
                                 <DataGridTextColumn Header="Device" Binding="{Binding Name}" Width="*" />
-                                <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="100" />
-                                <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="130" ElementStyle="{StaticResource MonoCell}" />
-                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="160" ElementStyle="{StaticResource MonoCell}" />
-                                <DataGridTemplateColumn Header="Severity" Width="105">
+                                <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="95" />
+                                <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="125" ElementStyle="{StaticResource MonoCell}" />
+                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="150" ElementStyle="{StaticResource MonoCell}" />
+                                <DataGridTemplateColumn Header="Severity" Width="125">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
-                                                        Visibility="{Binding HasSeverity, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                                <Ellipse Width="7" Height="7"
-                                                         Fill="{Binding SeverityBrush}"
-                                                         Margin="0,0,6,0"
-                                                         VerticalAlignment="Center" />
-                                                <TextBlock Text="{Binding Severity}"
-                                                           Foreground="{Binding SeverityBrush}"
-                                                           FontSize="12"
-                                                           VerticalAlignment="Center" />
-                                            </StackPanel>
+                                            <Border CornerRadius="7" Padding="10,4"
+                                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                    Background="{Binding SeverityTintBrush}"
+                                                    ToolTip="Rating per Microsoft's MSRC severity scale, or Windows Update deployment class (mandatory / automatic / optional) when no MSRC rating exists"
+                                                    Visibility="{Binding HasSeverity, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse Width="7" Height="7"
+                                                             Fill="{Binding SeverityBrush}"
+                                                             Margin="0,0,7,0"
+                                                             VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Severity}"
+                                                               Foreground="{Binding SeverityBrush}"
+                                                               FontWeight="SemiBold"
+                                                               VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Border>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                                 <DataGridTextColumn Header="Date" Binding="{Binding DriverDate}" Width="95" ElementStyle="{StaticResource MonoCell}" />
-                                <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="150" />
+                                <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="140" />
                                 <DataGridTemplateColumn Header="Status" Width="170">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
