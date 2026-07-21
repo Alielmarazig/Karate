@@ -29,6 +29,15 @@
                             <CubicEase EasingMode="EaseOut" />
                         </DoubleAnimation.EasingFunction>
                     </DoubleAnimation>
+                    <!-- Slow organic drift of the background orbs -->
+                    <DoubleAnimation Storyboard.TargetName="OrbVioletShift" Storyboard.TargetProperty="X"
+                                     From="0" To="80" Duration="0:0:16" AutoReverse="True" RepeatBehavior="Forever" />
+                    <DoubleAnimation Storyboard.TargetName="OrbVioletShift" Storyboard.TargetProperty="Y"
+                                     From="0" To="45" Duration="0:0:21" AutoReverse="True" RepeatBehavior="Forever" />
+                    <DoubleAnimation Storyboard.TargetName="OrbAmberShift" Storyboard.TargetProperty="X"
+                                     From="0" To="-65" Duration="0:0:14" AutoReverse="True" RepeatBehavior="Forever" />
+                    <DoubleAnimation Storyboard.TargetName="OrbAmberShift" Storyboard.TargetProperty="Y"
+                                     From="0" To="55" Duration="0:0:18" AutoReverse="True" RepeatBehavior="Forever" />
                 </Storyboard>
             </BeginStoryboard>
         </EventTrigger>
@@ -44,6 +53,47 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
+        <!-- Happy glass: colorful drifting orbs under frosted panels -->
+        <Grid Grid.Row="0" Grid.RowSpan="4" IsHitTestVisible="False">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#F2141031" Offset="0" />
+                    <GradientStop Color="#F20D1C3B" Offset="0.5" />
+                    <GradientStop Color="#F2271534" Offset="1" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Ellipse Width="540" Height="540" Fill="#6C63FF" Opacity="0.30"
+                     HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-170,-190,0,0">
+                <Ellipse.RenderTransform>
+                    <TranslateTransform x:Name="OrbVioletShift" />
+                </Ellipse.RenderTransform>
+                <Ellipse.Effect>
+                    <BlurEffect Radius="140" />
+                </Ellipse.Effect>
+            </Ellipse>
+            <Ellipse Width="460" Height="460" Fill="#F7A826" Opacity="0.20"
+                     HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-130,-150,0">
+                <Ellipse.RenderTransform>
+                    <TranslateTransform x:Name="OrbAmberShift" />
+                </Ellipse.RenderTransform>
+                <Ellipse.Effect>
+                    <BlurEffect Radius="130" />
+                </Ellipse.Effect>
+            </Ellipse>
+            <Ellipse Width="580" Height="580" Fill="#2F80ED" Opacity="0.24"
+                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-190,-230">
+                <Ellipse.Effect>
+                    <BlurEffect Radius="150" />
+                </Ellipse.Effect>
+            </Ellipse>
+            <Ellipse Width="420" Height="420" Fill="#FF5FA8" Opacity="0.15"
+                     HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-130,0,0,-170">
+                <Ellipse.Effect>
+                    <BlurEffect Radius="130" />
+                </Ellipse.Effect>
+            </Ellipse>
+        </Grid>
 
         <ui:TitleBar Grid.Row="0" Title="Karate">
             <ui:TitleBar.Icon>

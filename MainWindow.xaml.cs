@@ -14,7 +14,7 @@ public partial class MainWindow : FluentWindow
         DataContext = new MainViewModel();
         // Brand accent (violet) drives primary buttons, checkboxes, focus rings…
         ApplicationAccentColorManager.Apply(System.Windows.Media.Color.FromRgb(0x6C, 0x63, 0xFF));
-        Loaded += (_, _) => SystemThemeWatcher.Watch(this);
+        // Dark-locked: the painted glass background is designed for dark chrome.
     }
 
     private void OnExitClick(object sender, RoutedEventArgs e) => Close();
