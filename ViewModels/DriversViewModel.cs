@@ -325,4 +325,64 @@ public partial class DriversViewModel : ObservableObject
     [RelayCommand]
     private void OpenWindowsUpdate() =>
         Process.Start(new ProcessStartInfo("ms-settings:windowsupdate") { UseShellExecute = true });
+
+    [RelayCommand]
+    private async Task BackupDriversAsync()
+    {
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = "Choose where to save the driver backup" };
+        if (dialog.ShowDialog() != true)
+            return;
+
+        var target = System.IO.Path.Combine(dialog.FolderName, $"KarateDriverBackup-{DateTime.Now:yyyyMMdd-HHmm}");
+        IsBusy = true;
+        ProgressIndeterminate = true;
+        StatusText = "Backing up all third-party drivers — approve the UAC prompt. This can take a few minutes…";
+        try
+        {
+            var (ok, count, exitCode) = await DriverBackupService.BackupAsync(target);
+            StatusText = ok
+                ? $"Backed up {count} driver packages to {target}."
+                : $"Driver backup failed or was cancelled (exit code {exitCode}).";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task RestoreDriversAsync()
+    {
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = "Choose a Karate driver backup folder" };
+        if (dialog.ShowDialog() != true)
+            return;
+
+        var confirm = new Wpf.Ui.Controls.MessageBox
+        {
+            Title = "Restore drivers",
+            Content = $"Install all driver packages from:\n{dialog.FolderName}\n\n" +
+                      "Windows only applies packages that match your hardware. A reboot may be required.",
+            PrimaryButtonText = "Restore",
+            CloseButtonText = "Cancel",
+        };
+        if (await confirm.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary)
+            return;
+
+        IsBusy = true;
+        ProgressIndeterminate = true;
+        StatusText = "Restoring drivers — approve the UAC prompt. This can take a few minutes…";
+        try
+        {
+            var (ok, rebootNeeded, exitCode) = await DriverBackupService.RestoreAsync(dialog.FolderName);
+            StatusText = ok
+                ? rebootNeeded
+                    ? "Drivers restored — restart Windows to finish."
+                    : "Drivers restored."
+                : $"Driver restore failed or was cancelled (exit code {exitCode}).";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 }

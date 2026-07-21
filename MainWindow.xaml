@@ -110,6 +110,9 @@
                 <MenuItem Header="Scan _Drivers" Command="{Binding Drivers.ScanCommand}" />
                 <MenuItem Header="Check for Driver _Updates" Command="{Binding Drivers.CheckUpdatesCommand}" />
                 <Separator />
+                <MenuItem Header="_Backup Drivers…" Command="{Binding Drivers.BackupDriversCommand}" />
+                <MenuItem Header="_Restore Drivers…" Command="{Binding Drivers.RestoreDriversCommand}" />
+                <Separator />
                 <MenuItem Header="E_xit" Click="OnExitClick" />
             </MenuItem>
             <MenuItem Header="_View">
@@ -516,6 +519,8 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
@@ -534,18 +539,32 @@
                                    Margin="0,0,8,0" />
 
                         <ui:Button Grid.Column="2"
+                                   Icon="{ui:SymbolIcon Save24}"
+                                   Content="Backup"
+                                   ToolTip="Export every third-party driver package to a folder (pnputil) — do this before updating anything"
+                                   Command="{Binding Drivers.BackupDriversCommand}"
+                                   Margin="0,0,8,0" />
+
+                        <ui:Button Grid.Column="3"
+                                   Icon="{ui:SymbolIcon ArrowDownload24}"
+                                   Content="Restore"
+                                   ToolTip="Reinstall driver packages from a Karate backup folder"
+                                   Command="{Binding Drivers.RestoreDriversCommand}"
+                                   Margin="0,0,8,0" />
+
+                        <ui:Button Grid.Column="4"
                                    Icon="{ui:SymbolIcon Open24}"
-                                   Content="Open Windows Update"
+                                   ToolTip="Open Windows Update"
                                    Command="{Binding Drivers.OpenWindowsUpdateCommand}"
                                    Margin="0,0,16,0" />
 
-                        <CheckBox Grid.Column="3"
+                        <CheckBox Grid.Column="5"
                                   Content="Updates only"
                                   VerticalAlignment="Center"
                                   IsChecked="{Binding Drivers.UpdatesOnly}" />
 
-                        <ui:TextBox Grid.Column="5"
-                                    Width="280"
+                        <ui:TextBox Grid.Column="7"
+                                    Width="260"
                                     Icon="{ui:SymbolIcon Search24}"
                                     PlaceholderText="Search by device, class or vendor…"
                                     Text="{Binding Drivers.SearchText, UpdateSourceTrigger=PropertyChanged}" />
