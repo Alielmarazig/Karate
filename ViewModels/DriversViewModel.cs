@@ -153,11 +153,15 @@ public partial class DriversViewModel : ObservableObject
             // where driver updates actually matter.
             await CheckCatalogAsync();
 
+            // Third channel: NVIDIA's own lookup — Game Ready drivers arrive
+            // here weeks before Microsoft's channels.
+            await CheckNvidiaAsync();
+
             DriversView.Refresh();
             RefreshCounts();
             StatusText = UpdatesCount == 0
-                ? $"{Drivers.Count} drivers — no newer drivers found (Windows Update + Update Catalog)."
-                : $"{Drivers.Count} drivers — {UpdatesCount} updates found. Windows Update installs them; the Catalog button downloads directly.";
+                ? $"{Drivers.Count} drivers — no newer drivers found (Windows Update + Update Catalog + NVIDIA)."
+                : $"{Drivers.Count} drivers — {UpdatesCount} updates found. Click Update on a row to install.";
         }
         finally
         {
@@ -218,6 +222,33 @@ public partial class DriversViewModel : ObservableObject
             : "";
     }
 
+    private async Task CheckNvidiaAsync()
+    {
+        var gpu = Drivers.FirstOrDefault(d =>
+            d.DeviceClass.Equals("DISPLAY", StringComparison.OrdinalIgnoreCase)
+            && d.Name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase));
+        if (gpu is null)
+            return;
+
+        ProgressIndeterminate = true;
+        ProgressDetail = "phase 3/3 — NVIDIA";
+        StatusText = $"Checking NVIDIA for a newer Game Ready driver ({gpu.Name})…";
+
+        var latest = await NvidiaService.GetLatestAsync(gpu.Name);
+        if (latest is null)
+            return;
+
+        var installed = NvidiaService.MarketingVersionFromWddm(gpu.Version);
+        if (installed.Length == 0 || !NvidiaService.IsNewer(latest.Version, installed))
+            return;
+
+        // Vendor-direct wins: it is virtually always the newest package.
+        gpu.AvailableVersion = latest.Version;
+        gpu.WuUpdateId = "";
+        gpu.VendorDownloadUrl = latest.DetailsUrl.Length > 0 ? latest.DetailsUrl : latest.DownloadUrl;
+        gpu.Status = AppStatus.UpdateAvailable;
+    }
+
     [RelayCommand]
     private void OpenCatalog(DriverInfo driver) =>
         Process.Start(new ProcessStartInfo(CatalogService.SearchUrl(driver.HardwareId)) { UseShellExecute = true });
@@ -227,6 +258,14 @@ public partial class DriversViewModel : ObservableObject
     {
         if (driver.Status != AppStatus.UpdateAvailable)
             return;
+
+        // Vendor-direct (NVIDIA): open the official download page.
+        if (string.IsNullOrEmpty(driver.WuUpdateId) && driver.VendorDownloadUrl.Length > 0)
+        {
+            Process.Start(new ProcessStartInfo(driver.VendorDownloadUrl) { UseShellExecute = true });
+            StatusText = $"Opened NVIDIA's download page for {driver.Name} — download and run the installer.";
+            return;
+        }
 
         // Catalog-flagged drivers can't be auto-installed safely — hand the user
         // the signed package straight from Microsoft instead.

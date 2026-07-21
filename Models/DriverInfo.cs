@@ -19,6 +19,9 @@ public partial class DriverInfo : UpdatableItem
     /// <summary>Windows Update UpdateID when this update came from WU — enables direct install.</summary>
     public string WuUpdateId { get; set; } = "";
 
+    /// <summary>Vendor page for the update when it came from a vendor channel (NVIDIA).</summary>
+    public string VendorDownloadUrl { get; set; } = "";
+
     public bool CanUpdate => Status == AppStatus.UpdateAvailable;
 
     protected override void OnStatusChangedExtra() => OnPropertyChanged(nameof(CanUpdate));
