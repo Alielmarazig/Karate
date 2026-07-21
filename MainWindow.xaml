@@ -670,21 +670,6 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="" Width="110">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <ui:Button Content="Catalog"
-                                                       Appearance="Secondary"
-                                                       Icon="{ui:SymbolIcon Globe24}"
-                                                       Padding="8,4"
-                                                       HorizontalAlignment="Center"
-                                                       ToolTip="Search the Microsoft Update Catalog for this device"
-                                                       Visibility="{Binding HasHardwareId, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                                       Command="{Binding DataContext.Drivers.OpenCatalogCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-                                                       CommandParameter="{Binding}" />
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
                             </ui:DataGrid.Columns>
                         </ui:DataGrid>
                     </Border>
