@@ -5,7 +5,8 @@ using System.Reflection;
 
 namespace Karate.Services;
 
-public record DriverUpdate(string Title, string Model, string Manufacturer, string HardwareId, string UpdateId);
+public record DriverUpdate(string Title, string Model, string Manufacturer, string HardwareId, string UpdateId,
+    string MsrcSeverity, bool IsMandatory);
 
 /// <summary>
 /// Searches Windows Update for available driver updates via the Windows Update
@@ -55,12 +56,18 @@ public static class DriverUpdateService
                 {
                     // No identity — installable targeting just won't be available.
                 }
+                bool mandatory = false;
+                try { mandatory = GetProp(update, "IsMandatory") is bool b && b; }
+                catch { }
+
                 list.Add(new DriverUpdate(
                     GetStr(update, "Title"),
                     GetStr(update, "DriverModel"),
                     GetStr(update, "DriverManufacturer"),
                     GetStr(update, "DriverHardwareID"),
-                    updateId));
+                    updateId,
+                    GetStr(update, "MsrcSeverity"),
+                    mandatory));
             }
             return list;
         }

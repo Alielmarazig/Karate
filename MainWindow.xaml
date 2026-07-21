@@ -160,10 +160,10 @@
                                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <!-- Self-update: arrow pill when available, ring + % while downloading -->
+                    <!-- Self-update: RED arrow pill when an update is needed -->
                     <ui:Button Appearance="Transparent"
-                               Background="#F7A826"
-                               Foreground="#1A1029"
+                               Background="#E5484D"
+                               Foreground="White"
                                CornerRadius="8"
                                Padding="10,5"
                                Margin="0,0,10,0"
@@ -174,19 +174,27 @@
                                Click="OnHeroUpdateClick"
                                Visibility="{Binding SelfUpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <ui:Button.Effect>
-                            <DropShadowEffect Color="#F7A826" BlurRadius="16" ShadowDepth="0" Opacity="0.6" />
+                            <DropShadowEffect Color="#E5484D" BlurRadius="18" ShadowDepth="0" Opacity="0.65" />
                         </ui:Button.Effect>
                     </ui:Button>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,10,0"
-                                Visibility="{Binding SelfUpdateDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <ui:ProgressRing Width="22" Height="22"
-                                         IsIndeterminate="False"
-                                         Progress="{Binding SelfUpdateProgress}" />
-                        <TextBlock Text="{Binding SelfUpdateProgress, StringFormat={}{0:0}%}"
-                                   Margin="7,0,0,0" VerticalAlignment="Center"
-                                   FontFamily="Cascadia Mono, Consolas" FontSize="12"
-                                   Foreground="#F7A826" FontWeight="SemiBold" />
-                    </StackPanel>
+                    <!-- YELLOW capsule with progress circle while updating -->
+                    <Border Margin="0,0,10,0" CornerRadius="8" Padding="10,5"
+                            Background="#26F5C518" BorderBrush="#80F5C518" BorderThickness="1"
+                            Visibility="{Binding SelfUpdateDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#F5C518" BlurRadius="16" ShadowDepth="0" Opacity="0.55" />
+                        </Border.Effect>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:ProgressRing Width="20" Height="20"
+                                             IsIndeterminate="False"
+                                             Foreground="#F5C518"
+                                             Progress="{Binding SelfUpdateProgress}" />
+                            <TextBlock Text="{Binding SelfUpdateProgress, StringFormat={}Updating… {0:0}%}"
+                                       Margin="8,0,0,0" VerticalAlignment="Center"
+                                       FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                                       Foreground="#F5C518" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Border>
                     <Border CornerRadius="8" Padding="10,4" VerticalAlignment="Center"
                             Background="#22FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1">
                         <TextBlock Text="{Binding AppVersion}" FontFamily="Cascadia Mono, Consolas" FontSize="12"
@@ -608,7 +616,24 @@
                                 <DataGridTextColumn Header="Device" Binding="{Binding Name}" Width="*" />
                                 <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="100" />
                                 <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="130" ElementStyle="{StaticResource MonoCell}" />
-                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="170" ElementStyle="{StaticResource MonoCell}" />
+                                <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="160" ElementStyle="{StaticResource MonoCell}" />
+                                <DataGridTemplateColumn Header="Severity" Width="105">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                                        Visibility="{Binding HasSeverity, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                <Ellipse Width="8" Height="8"
+                                                         Fill="{Binding SeverityBrush}"
+                                                         Margin="0,0,8,0"
+                                                         VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding Severity}"
+                                                           Foreground="{Binding SeverityBrush}"
+                                                           FontWeight="SemiBold"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                                 <DataGridTextColumn Header="Date" Binding="{Binding DriverDate}" Width="95" ElementStyle="{StaticResource MonoCell}" />
                                 <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="150" />
                                 <DataGridTemplateColumn Header="Status" Width="170">

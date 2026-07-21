@@ -116,7 +116,10 @@ public partial class DriversViewModel : ObservableObject
                 Drivers.Remove(stale);
 
             foreach (var driver in Drivers)
+            {
                 driver.Status = AppStatus.NoKnownUpdate;
+                driver.Severity = "";
+            }
 
             foreach (var update in updates)
             {
@@ -125,6 +128,7 @@ public partial class DriversViewModel : ObservableObject
                 {
                     match.AvailableVersion = CompactLabel(update.Title, "Windows Update");
                     match.WuUpdateId = update.UpdateId;
+                    match.Severity = ComputeSeverity(update.MsrcSeverity, update.IsMandatory, match.DeviceClass);
                     match.Status = AppStatus.UpdateAvailable;
                 }
                 else
@@ -139,6 +143,9 @@ public partial class DriversViewModel : ObservableObject
                         Source = "Windows Update",
                         AvailableVersion = CompactLabel(update.Title, "Windows Update"),
                         WuUpdateId = update.UpdateId,
+                        Severity = !string.IsNullOrWhiteSpace(update.MsrcSeverity)
+                            ? update.MsrcSeverity
+                            : update.IsMandatory ? "Critical" : "Moderate",
                         Status = AppStatus.UpdateAvailable,
                     });
                 }
@@ -198,6 +205,7 @@ public partial class DriversViewModel : ObservableObject
                 if (Version.TryParse(driver.Version, out var installed) && latest.Version > installed)
                 {
                     driver.AvailableVersion = $"{latest.Version} (Catalog)";
+                    driver.Severity = ComputeSeverity("", false, driver.DeviceClass);
                     driver.Status = AppStatus.UpdateAvailable;
                 }
             }
@@ -249,6 +257,24 @@ public partial class DriversViewModel : ObservableObject
             DriversView.Refresh();
             RefreshCounts();
         }
+    }
+
+    /// <summary>
+    /// Criticality: WU's MSRC severity when present, mandatory flag next,
+    /// otherwise a device-class heuristic (GPU/network/storage matter most).
+    /// </summary>
+    private static string ComputeSeverity(string msrcSeverity, bool isMandatory, string deviceClass)
+    {
+        if (!string.IsNullOrWhiteSpace(msrcSeverity))
+            return msrcSeverity;
+        if (isMandatory)
+            return "Critical";
+        return deviceClass.ToUpperInvariant() switch
+        {
+            "DISPLAY" or "NET" or "HDC" or "SCSIADAPTER" or "SYSTEM" => "Important",
+            "MEDIA" or "USB" or "BLUETOOTH" => "Moderate",
+            _ => "Optional",
+        };
     }
 
     /// <summary>"Intel Corporation - Net - 23.100.0.5" → "23.100.0.5 (Windows Update)".</summary>

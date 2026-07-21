@@ -1,3 +1,6 @@
+using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace Karate.Models;
 
 public partial class DriverInfo : UpdatableItem
@@ -19,4 +22,35 @@ public partial class DriverInfo : UpdatableItem
     public bool CanUpdate => Status == AppStatus.UpdateAvailable;
 
     protected override void OnStatusChangedExtra() => OnPropertyChanged(nameof(CanUpdate));
+
+    /// <summary>How critical the pending update is: Critical / Important / Moderate / Optional.</summary>
+    [ObservableProperty]
+    private string _severity = "";
+
+    partial void OnSeverityChanged(string value)
+    {
+        OnPropertyChanged(nameof(SeverityBrush));
+        OnPropertyChanged(nameof(HasSeverity));
+    }
+
+    public bool HasSeverity => Severity.Length > 0;
+
+    private static readonly Brush CriticalBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xE5, 0x48, 0x4D)));
+    private static readonly Brush ImportantBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xF7, 0xA8, 0x26)));
+    private static readonly Brush ModerateBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xF5, 0xC5, 0x18)));
+    private static readonly Brush OptionalBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x8B, 0x94, 0x9E)));
+
+    public Brush SeverityBrush => Severity switch
+    {
+        "Critical" => CriticalBrush,
+        "Important" => ImportantBrush,
+        "Moderate" => ModerateBrush,
+        _ => OptionalBrush,
+    };
+
+    private static Brush Freeze(SolidColorBrush brush)
+    {
+        brush.Freeze();
+        return brush;
+    }
 }
