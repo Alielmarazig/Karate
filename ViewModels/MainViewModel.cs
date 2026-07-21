@@ -55,10 +55,10 @@ public partial class MainViewModel : ObservableObject
     private async Task ScanAsync()
     {
         IsBusy = true;
-        StatusText = "Scanning registry for installed software…";
+        StatusText = "Scanning installed software (registry + Microsoft Store)…";
         try
         {
-            var apps = await Task.Run(RegistryScanner.Scan);
+            var apps = await Task.Run(SoftwareInventory.ScanAll);
             Apps.Clear();
             foreach (var app in apps)
                 Apps.Add(app);

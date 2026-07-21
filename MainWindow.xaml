@@ -113,7 +113,8 @@
                     <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" />
                     <DataGridTextColumn Header="Installed" Binding="{Binding Version}" Width="140" />
                     <DataGridTextColumn Header="Available" Binding="{Binding AvailableVersion}" Width="140" />
-                    <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="240" />
+                    <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="200" />
+                    <DataGridTextColumn Header="Source" Binding="{Binding RegistrySource}" Width="140" />
                     <DataGridTemplateColumn Header="Status" Width="170">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>

@@ -2,6 +2,7 @@
 bin/
 obj/
 publish/
+publish-portable/
 
 # Installer artifacts (attach the MSI to GitHub Releases instead)
 installer/*.msi
