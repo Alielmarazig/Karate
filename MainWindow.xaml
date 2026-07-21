@@ -638,28 +638,6 @@
                                 <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="95" />
                                 <DataGridTextColumn Header="Current Version" Binding="{Binding Version}" Width="125" ElementStyle="{StaticResource MonoCell}" />
                                 <DataGridTextColumn Header="New Version" Binding="{Binding AvailableVersion}" Width="150" ElementStyle="{StaticResource MonoCell}" />
-                                <DataGridTemplateColumn Header="Severity" Width="125">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Border CornerRadius="7" Padding="10,4"
-                                                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                                                    Background="{Binding SeverityTintBrush}"
-                                                    ToolTip="Rating per Microsoft's MSRC severity scale, or Windows Update deployment class (mandatory / automatic / optional) when no MSRC rating exists"
-                                                    Visibility="{Binding HasSeverity, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Ellipse Width="7" Height="7"
-                                                             Fill="{Binding SeverityBrush}"
-                                                             Margin="0,0,7,0"
-                                                             VerticalAlignment="Center" />
-                                                    <TextBlock Text="{Binding Severity}"
-                                                               Foreground="{Binding SeverityBrush}"
-                                                               FontWeight="SemiBold"
-                                                               VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
                                 <DataGridTextColumn Header="Date" Binding="{Binding DriverDate}" Width="95" ElementStyle="{StaticResource MonoCell}" />
                                 <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="140" />
                                 <DataGridTemplateColumn Header="Status" Width="170">
