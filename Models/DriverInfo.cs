@@ -9,4 +9,7 @@ public partial class DriverInfo : UpdatableItem
     public string Manufacturer { get; init; } = "";
     public string HardwareId { get; init; } = "";
     public string Source { get; init; } = "Device Manager";
+
+    /// <summary>Catalog search only makes sense with a hardware id to search for.</summary>
+    public bool HasHardwareId => HardwareId.Length > 0;
 }

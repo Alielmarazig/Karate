@@ -128,17 +128,63 @@ public partial class DriversViewModel : ObservableObject
                 }
             }
 
+            // Second channel: Microsoft Update Catalog, for the device classes
+            // where driver updates actually matter.
+            await CheckCatalogAsync();
+
             DriversView.Refresh();
             RefreshCounts();
             StatusText = UpdatesCount == 0
-                ? $"{Drivers.Count} drivers — all up to date according to Windows Update."
-                : $"{Drivers.Count} drivers — {UpdatesCount} driver updates available. Install them via Windows Update.";
+                ? $"{Drivers.Count} drivers — no newer drivers found (Windows Update + Update Catalog)."
+                : $"{Drivers.Count} drivers — {UpdatesCount} updates found. Windows Update installs them; the Catalog button downloads directly.";
         }
         finally
         {
             IsBusy = false;
         }
     }
+
+    private static readonly string[] CatalogClasses =
+        ["DISPLAY", "NET", "MEDIA", "BLUETOOTH", "HDC", "SCSIADAPTER", "USB"];
+
+    private async Task CheckCatalogAsync()
+    {
+        var groups = Drivers
+            .Where(d => d.Source == "Device Manager"
+                && d.Status != AppStatus.UpdateAvailable
+                && CatalogClasses.Contains(d.DeviceClass, StringComparer.OrdinalIgnoreCase)
+                && (d.HardwareId.StartsWith(@"PCI\", StringComparison.OrdinalIgnoreCase)
+                    || d.HardwareId.StartsWith(@"USB\", StringComparison.OrdinalIgnoreCase)))
+            .GroupBy(d => CatalogService.TrimHardwareId(d.HardwareId), StringComparer.OrdinalIgnoreCase)
+            .Take(20)
+            .ToList();
+
+        int i = 0;
+        foreach (var group in groups)
+        {
+            i++;
+            StatusText = $"Checking Microsoft Update Catalog ({i}/{groups.Count}): {group.First().Name}…";
+
+            var latest = await CatalogService.GetLatestAsync(group.Key);
+            if (latest is null)
+                continue;
+
+            foreach (var driver in group)
+            {
+                if (Version.TryParse(driver.Version, out var installed) && latest.Version > installed)
+                {
+                    driver.AvailableVersion = $"{latest.Version} — Update Catalog, {latest.Date}";
+                    driver.Status = AppStatus.UpdateAvailable;
+                }
+            }
+
+            await Task.Delay(250); // be polite to the catalog
+        }
+    }
+
+    [RelayCommand]
+    private void OpenCatalog(DriverInfo driver) =>
+        Process.Start(new ProcessStartInfo(CatalogService.SearchUrl(driver.HardwareId)) { UseShellExecute = true });
 
     private DriverInfo? FindMatch(DriverUpdate update)
     {
