@@ -423,6 +423,21 @@
                                 <DataGridTemplateColumn Header="" Width="110">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
+                                            <ui:Button Content="Update"
+                                                       Appearance="Secondary"
+                                                       Icon="{ui:SymbolIcon ArrowDownload24}"
+                                                       Padding="8,4"
+                                                       HorizontalAlignment="Center"
+                                                       ToolTip="Install via Windows Update (UAC prompt) or open the Catalog download"
+                                                       Visibility="{Binding CanUpdate, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                       Command="{Binding DataContext.Drivers.UpdateDriverCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                       CommandParameter="{Binding}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="" Width="110">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
                                             <ui:Button Content="Catalog"
                                                        Appearance="Secondary"
                                                        Icon="{ui:SymbolIcon Globe24}"

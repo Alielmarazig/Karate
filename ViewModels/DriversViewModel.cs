@@ -110,6 +110,7 @@ public partial class DriversViewModel : ObservableObject
                 if (match is not null)
                 {
                     match.AvailableVersion = CompactLabel(update.Title, "Windows Update");
+                    match.WuUpdateId = update.UpdateId;
                     match.Status = AppStatus.UpdateAvailable;
                 }
                 else
@@ -123,6 +124,7 @@ public partial class DriversViewModel : ObservableObject
                         HardwareId = update.HardwareId,
                         Source = "Windows Update",
                         AvailableVersion = CompactLabel(update.Title, "Windows Update"),
+                        WuUpdateId = update.UpdateId,
                         Status = AppStatus.UpdateAvailable,
                     });
                 }
@@ -186,6 +188,38 @@ public partial class DriversViewModel : ObservableObject
     private void OpenCatalog(DriverInfo driver) =>
         Process.Start(new ProcessStartInfo(CatalogService.SearchUrl(driver.HardwareId)) { UseShellExecute = true });
 
+    [RelayCommand]
+    private async Task UpdateDriverAsync(DriverInfo driver)
+    {
+        if (driver.Status != AppStatus.UpdateAvailable)
+            return;
+
+        // Catalog-flagged drivers can't be auto-installed safely — hand the user
+        // the signed package straight from Microsoft instead.
+        if (string.IsNullOrEmpty(driver.WuUpdateId))
+        {
+            OpenCatalog(driver);
+            StatusText = $"Opened the Update Catalog for {driver.Name} — use its Download button, then run the installer.";
+            return;
+        }
+
+        driver.Status = AppStatus.Updating;
+        StatusText = $"Installing driver update for {driver.Name} — approve the UAC prompt. This can take a while…";
+        try
+        {
+            var ok = await DriverUpdateService.InstallAsync(driver.WuUpdateId);
+            driver.Status = ok ? AppStatus.Updated : AppStatus.UpdateFailed;
+            StatusText = ok
+                ? $"Driver for {driver.Name} installed — a reboot may be required."
+                : $"Driver update for {driver.Name} failed or was cancelled.";
+        }
+        finally
+        {
+            DriversView.Refresh();
+            RefreshCounts();
+        }
+    }
+
     /// <summary>"Intel Corporation - Net - 23.100.0.5" → "23.100.0.5 (Windows Update)".</summary>
     private static string CompactLabel(string title, string channel)
     {
@@ -214,7 +248,7 @@ public partial class DriversViewModel : ObservableObject
     private void RefreshCounts()
     {
         TotalCount = Drivers.Count;
-        UpdatesCount = Drivers.Count(d => d.Status == AppStatus.UpdateAvailable);
+        UpdatesCount = Drivers.Count(d => d.Status is AppStatus.UpdateAvailable or AppStatus.Updating or AppStatus.UpdateFailed);
     }
 
     [RelayCommand]

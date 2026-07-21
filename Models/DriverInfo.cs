@@ -12,4 +12,11 @@ public partial class DriverInfo : UpdatableItem
 
     /// <summary>Catalog search only makes sense with a hardware id to search for.</summary>
     public bool HasHardwareId => HardwareId.Length > 0;
+
+    /// <summary>Windows Update UpdateID when this update came from WU — enables direct install.</summary>
+    public string WuUpdateId { get; set; } = "";
+
+    public bool CanUpdate => Status == AppStatus.UpdateAvailable;
+
+    protected override void OnStatusChangedExtra() => OnPropertyChanged(nameof(CanUpdate));
 }

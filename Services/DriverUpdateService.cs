@@ -1,8 +1,11 @@
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 
 namespace Karate.Services;
 
-public record DriverUpdate(string Title, string Model, string Manufacturer, string HardwareId);
+public record DriverUpdate(string Title, string Model, string Manufacturer, string HardwareId, string UpdateId);
 
 /// <summary>
 /// Searches Windows Update for available driver updates via the Windows Update
@@ -41,11 +44,23 @@ public static class DriverUpdateService
                 var update = GetProp(updates, "Item", i);
                 if (update is null)
                     continue;
+                var updateId = "";
+                try
+                {
+                    var identity = GetProp(update, "Identity");
+                    if (identity is not null)
+                        updateId = GetStr(identity, "UpdateID");
+                }
+                catch
+                {
+                    // No identity — installable targeting just won't be available.
+                }
                 list.Add(new DriverUpdate(
                     GetStr(update, "Title"),
                     GetStr(update, "DriverModel"),
                     GetStr(update, "DriverManufacturer"),
-                    GetStr(update, "DriverHardwareID")));
+                    GetStr(update, "DriverHardwareID"),
+                    updateId));
             }
             return list;
         }
@@ -53,6 +68,67 @@ public static class DriverUpdateService
         {
             // COM failure, no network, WU service disabled, …
             return null;
+        }
+    }
+
+    // Downloads and installs one specific Windows Update driver update through
+    // an elevated PowerShell helper (WUA install requires admin — this is the
+    // supported route; the user approves a single UAC prompt).
+    private const string InstallHelperScript = """
+        param([Parameter(Mandatory=$true)][string]$UpdateId)
+        $ErrorActionPreference = 'Stop'
+        try {
+            $session = New-Object -ComObject Microsoft.Update.Session
+            $searcher = $session.CreateUpdateSearcher()
+            $result = $searcher.Search("UpdateID='$UpdateId'")
+            if ($result.Updates.Count -eq 0) { exit 3 }
+            $coll = New-Object -ComObject Microsoft.Update.UpdateColl
+            foreach ($u in $result.Updates) {
+                if (-not $u.EulaAccepted) { $u.AcceptEula() }
+                [void]$coll.Add($u)
+            }
+            $downloader = $session.CreateUpdateDownloader()
+            $downloader.Updates = $coll
+            [void]$downloader.Download()
+            $installer = $session.CreateUpdateInstaller()
+            $installer.Updates = $coll
+            $ir = $installer.Install()
+            if ($ir.ResultCode -eq 2 -or $ir.ResultCode -eq 3) { exit 0 } else { exit $ir.ResultCode }
+        } catch { exit 9 }
+        """;
+
+    /// <summary>Installs one WU driver update by UpdateID. Returns false on failure or UAC decline.</summary>
+    public static async Task<bool> InstallAsync(string updateId)
+    {
+        // The id is interpolated into a PowerShell string — only accept real GUIDs.
+        if (!Guid.TryParse(updateId, out var guid))
+            return false;
+
+        try
+        {
+            var dir = Path.Combine(Path.GetTempPath(), "Karate");
+            Directory.CreateDirectory(dir);
+            var scriptPath = Path.Combine(dir, "install-driver-update.ps1");
+            await File.WriteAllTextAsync(scriptPath, InstallHelperScript);
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{scriptPath}\" -UpdateId \"{guid}\"",
+                UseShellExecute = true,
+                Verb = "runas",
+            };
+
+            using var process = Process.Start(psi);
+            if (process is null)
+                return false;
+            await process.WaitForExitAsync();
+            return process.ExitCode == 0;
+        }
+        catch (Win32Exception)
+        {
+            // UAC prompt declined.
+            return false;
         }
     }
 
